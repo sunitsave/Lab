@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Travel Companion</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one phone-width column, big type and big targets for senior travellers; sections collapse to a header with a count. */
+:root{
+  --bg:#FFFFFF; --panel:#F3F3F1; --line:#D6D6D2; --ink:#1A1A1A; --muted:#4F4F4B;
+  --accent:#1F5FAD; --accent-ink:#FFFFFF; --warn-bg:#FFF1D6; --warn-ink:#5C3200; --warn-line:#8A4B00;
+  --sun:#8A4B00; --moon:#1F3A6B; --chip:#E4E4E0;
+  --font:'Atkinson Hyperlegible', 'Segoe UI', Roboto, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141412; --panel:#1F1F1C; --line:#3A3A36; --ink:#F2F2EE; --muted:#B9B9B2;
+  --accent:#7FB0F0; --accent-ink:#0B1A2E; --warn-bg:#3A2A10; --warn-ink:#FFD9A0; --warn-line:#D99A3A;
+  --sun:#F0B860; --moon:#A9C4F5; --chip:#2E2E2A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141412; --panel:#1F1F1C; --line:#3A3A36; --ink:#F2F2EE; --muted:#B9B9B2;
+  --accent:#7FB0F0; --accent-ink:#0B1A2E; --warn-bg:#3A2A10; --warn-ink:#FFD9A0; --warn-line:#D99A3A;
+  --sun:#F0B860; --moon:#A9C4F5; --chip:#2E2E2A; color-scheme:dark}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--font);font-size:18px;line-height:1.35;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 32px}
+.app{max-width:520px;margin:0 auto;display:flex;flex-direction:column}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+svg{flex-shrink:0}
+.top{display:flex;align-items:center;gap:12px;padding-block:14px 12px;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.iconbtn{width:56px;height:56px;border-radius:12px;border:2px solid var(--ink);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--ink);text-decoration:none}
+.top h1{margin:0;font-size:24px;flex:1;min-width:0;text-wrap:balance}
+.hello{flex:1;min-width:0;display:flex;flex-direction:column}
+.hello small{font-size:16px;color:var(--muted)}
+.hello b{font-size:25px;line-height:1.1;overflow-wrap:anywhere}
+.avatar{width:60px;height:60px;border-radius:50%;border:2px solid var(--ink);background:var(--chip);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+main{display:flex;flex-direction:column;gap:16px;padding-top:18px}
+h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
+.card{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.strong{border:2px solid var(--ink)}
+.row{display:flex;align-items:center;gap:12px;min-width:0}
+.grow{flex:1;min-width:0}
+.big{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.label{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.muted{color:var(--muted);font-size:16px}
+.note{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.warn{background:var(--warn-bg);color:var(--warn-ink);border:2px solid var(--warn-line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.zone{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.zone .t{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.btn{min-height:56px;border-radius:12px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;text-decoration:none;cursor:pointer;text-align:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{border-color:var(--warn-line);color:var(--warn-ink);background:var(--warn-bg)}
+.sec{display:flex;flex-direction:column;gap:12px}
+.sechead{min-height:72px;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);text-align:left;cursor:pointer}
+.sechead .t{font-size:21px;font-weight:700;display:block}
+.sechead .s{font-size:15px;color:var(--muted);display:block;overflow-wrap:anywhere}
+.badge{min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--chip);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.empty{min-height:64px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;border:2px dashed var(--muted);color:var(--muted);text-decoration:none}
+.empty b{color:var(--ink);font-size:17px;display:block}
+.tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);color:var(--ink);text-decoration:none;min-width:0}
+.tile b{font-size:18px;line-height:1.2}
+.tile span{font-size:14px;color:var(--muted)}
+.ph{border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;overflow:hidden;flex-shrink:0}
+.ph img{width:100%;height:100%;object-fit:cover}
+.dose{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.dose div{display:flex;flex-direction:column;align-items:center;padding:6px 0;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--muted)}
+.dose div.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dose b{font-size:20px}.dose span{font-size:13px}
+.navlist{display:flex;flex-direction:column}
+.navitem{min-height:76px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);background:none;border-left:0;border-right:0;border-top:0;padding:0;width:100%;text-align:left;cursor:pointer}
+.navitem .t{font-size:20px;font-weight:700;display:block}
+.navitem .s{font-size:15px;color:var(--muted);display:block}
+.subitem{min-height:66px;display:flex;align-items:center;gap:14px;padding:0 12px;border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.subitem .t{font-size:19px;font-weight:700;display:block}.subitem .s{font-size:15px;color:var(--muted);display:block}
+.grouplabel{margin:14px 0 2px;font-size:15px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+form{display:flex;flex-direction:column;gap:14px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:17px;font-weight:700}
+label.f input,label.f select,label.f textarea{min-height:52px;border-radius:10px;border:2px solid var(--muted);padding:8px 12px;font-size:18px;font-weight:400;background:var(--bg);box-sizing:border-box;width:100%}
+label.f textarea{min-height:90px;resize:vertical}
+label.chk{display:flex;align-items:center;gap:12px;min-height:48px;font-size:17px}
+label.chk input{width:28px;height:28px}
+.listrow{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:14px;padding:12px 14px;min-width:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:14px 18px;border-radius:12px;font-size:17px;max-width:min(90vw,480px);z-index:20}
+.banner{background:var(--warn-bg);color:var(--warn-ink);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:6px}.step i{flex:1;height:6px;border-radius:3px;background:var(--chip)}.step i.on{background:var(--accent)}
+.help ol{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:10px}
+.help p{margin:0}
+.foot{margin-top:20px;font-size:15px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div class="app" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function(){
+'use strict';
+const KEY='travelCompanion.v1';
+const BUILD='UAT build 0.1';
+
+/* ---------- icons (inline stroke SVG) ---------- */
+const P={
+ menu:'<path d="M4 6h16M4 12h16M4 18h16"/>', back:'<path d="M15 18l-6-6 6-6"/>', close:'<path d="M6 6l12 12M18 6L6 18"/>',
+ chev:'<path d="M9 6l6 6-6 6"/>', up:'<path d="M6 15l6-6 6 6"/>', down:'<path d="M6 9l6 6 6-6"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+ sunset:'<path d="M4 18h16M7 14a5 5 0 0 1 10 0M12 4v3M5 9l1.5 1.5M19 9l-1.5 1.5"/>',
+ alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+ phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',
+ chat:'<path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z"/>',
+ group:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5a5 5 0 0 1 5.5 5"/>',
+ translate:'<path d="M4 5h8M8 3v2M6 5c0 4 2.5 7 5 8M10 5c-.5 3.5-3 7-6 8.5"/><path d="M13 21l4-9 4 9M14.5 18h5"/>',
+ pill:'<path d="M10.5 20.5a5 5 0 0 1-7-7l10-10a5 5 0 0 1 7 7z"/><path d="M8.5 8.5l7 7"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ calnext:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 14l3 2.5-3 2.5"/>',
+ pin:'<path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+ plane:'<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+ cross:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
+ ticket:'<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/>',
+ cloud:'<path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.3A7 7 0 1 0 4 15.2 4 4 0 0 0 6.5 19z"/>',
+ bed:'<path d="M3 18V6M3 13h18v5M21 13a3 3 0 0 0-3-3h-8v3"/><circle cx="7" cy="10.5" r="1.5"/>',
+ shirt:'<path d="M8 3l4 2 4-2 5 4-3 3-2-1v12H8V9l-2 1-3-3z"/>',
+ bag:'<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>', ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+ compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+ sliders:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+ wifi:'<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
+ signal:'<path d="M4 20v-3M9 20v-6M14 20v-9M19 20V5"/>', mobile:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
+ dl:'<path d="M12 3v12M7 10l5 5 5-5M4 19h16"/>', ul:'<path d="M12 15V3M7 8l5-5 5 5M4 19h16"/>',
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>', trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/>', camera:'<path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/>'
+};
+function ic(n,s,cls){s=s||26;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'+(cls?' style="color:var(--'+cls+')"':'')+'>'+P[n]+'</svg>';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function enc(s){return encodeURIComponent(s||'');}
+
+/* ---------- time helpers ---------- */
+const DEVICE_TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Kolkata'}catch(e){return 'Asia/Kolkata'}})();
+function validTz(tz){try{new Intl.DateTimeFormat('en',{timeZone:tz});return true}catch(e){return false}}
+function fmtTime(tz,d){return new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false}).format(d||new Date());}
+function dateIn(tz,d){return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d||new Date());}
+function hourIn(tz,d){return +new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',hour12:false}).format(d||new Date())%24;}
+function addDays(ds,n){const [y,m,d]=ds.split('-').map(Number);const t=new Date(Date.UTC(y,m-1,d+n));return t.toISOString().slice(0,10);}
+function nice(ds){if(!ds)return '';const [y,m,d]=ds.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});}
+function tzOffsetMin(tz,date){const p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(date).forEach(x=>p[x.type]=x.value);return (Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute,+p.second)-date.getTime())/60000;}
+function zonedToDate(ds,ts,tz){if(!ds||!ts)return null;const [y,m,d]=ds.split('-').map(Number);const [h,mi]=ts.split(':').map(Number);const guess=Date.UTC(y,m-1,d,h,mi);let off=tzOffsetMin(tz,new Date(guess));let t=guess-off*60000;off=tzOffsetMin(tz,new Date(t));return new Date(guess-off*60000);}
+function zoneName(tz){const city=(tz.split('/').pop()||tz).replace(/_/g,' ');return city;}
+function dur(ms){const m=Math.round(Math.abs(ms)/60000);const h=Math.floor(m/60);return (h?h+' h ':'')+(m%60)+' min';}
+/* representative coordinates for common zones, used only for sunset times */
+const COORDS={'Asia/Kolkata':[19.08,72.88],'Asia/Calcutta':[19.08,72.88],'Asia/Dubai':[25.2,55.27],'Europe/Istanbul':[41.01,28.98],'Europe/London':[51.51,-0.13],'Europe/Paris':[48.86,2.35],'Europe/Berlin':[52.52,13.4],'Europe/Rome':[41.9,12.5],'Europe/Madrid':[40.42,-3.7],'Europe/Amsterdam':[52.37,4.9],'Europe/Zurich':[47.37,8.54],'Europe/Vienna':[48.21,16.37],'Europe/Prague':[50.08,14.44],'Europe/Athens':[37.98,23.73],'Europe/Moscow':[55.76,37.62],'Asia/Singapore':[1.35,103.82],'Asia/Bangkok':[13.76,100.5],'Asia/Kuala_Lumpur':[3.14,101.69],'Asia/Jakarta':[-6.2,106.85],'Asia/Hong_Kong':[22.32,114.17],'Asia/Shanghai':[31.23,121.47],'Asia/Tokyo':[35.68,139.69],'Asia/Seoul':[37.57,126.98],'Asia/Kathmandu':[27.72,85.32],'Asia/Colombo':[6.93,79.86],'Asia/Dhaka':[23.81,90.41],'Asia/Qatar':[25.29,51.53],'Asia/Riyadh':[24.71,46.68],'Asia/Muscat':[23.59,58.41],'Asia/Bahrain':[26.23,50.59],'Asia/Kuwait':[29.38,47.99],'Africa/Cairo':[30.04,31.24],'Africa/Nairobi':[-1.29,36.82],'Africa/Johannesburg':[-26.2,28.05],'Australia/Sydney':[-33.87,151.21],'Australia/Melbourne':[-37.81,144.96],'Pacific/Auckland':[-36.85,174.76],'America/New_York':[40.71,-74.01],'America/Chicago':[41.88,-87.63],'America/Denver':[39.74,-104.99],'America/Los_Angeles':[34.05,-118.24],'America/Toronto':[43.65,-79.38],'America/Vancouver':[49.28,-123.12],'America/Sao_Paulo':[-23.55,-46.63],'America/Mexico_City':[19.43,-99.13]};
+function sunTimes(date,lat,lon){const r=Math.PI/180;const n=Math.round(date.getTime()/86400000+2440587.5-2451545.0+0.0008-lon/360);const J=n+0.0008-lon/360;const M=(357.5291+0.98560028*J)%360;const C=1.9148*Math.sin(M*r)+0.02*Math.sin(2*M*r)+0.0003*Math.sin(3*M*r);const L=(M+C+180+102.9372)%360;const Jt=2451545+J+0.0053*Math.sin(M*r)-0.0069*Math.sin(2*L*r);const dec=Math.asin(Math.sin(L*r)*Math.sin(23.44*r));const cw=(Math.sin(-0.833*r)-Math.sin(lat*r)*Math.sin(dec))/(Math.cos(lat*r)*Math.cos(dec));if(cw<-1||cw>1)return null;const w=Math.acos(cw)/r;const toD=x=>new Date((x-2440587.5)*86400000);return {rise:toD(Jt-w/360),set:toD(Jt+w/360)};}
+function dayInfo(tz,now){const c=COORDS[tz];if(c){let s=sunTimes(now,c[0],c[1]);if(s){if(now<s.rise){return {day:false,rise:s.rise};}if(now<s.set){return {day:true,set:s.set};}const t=sunTimes(new Date(now.getTime()+86400000),c[0],c[1]);return {day:false,rise:t&&t.rise};}}const h=hourIn(tz,now);return {day:h>=6&&h<18,approx:true};}
+
+
+/* ---------- live data: GPS + weather alerts (work when hosted on https; blocked inside the Claude preview) ---------- */
+const live={pos:null,posErr:null,posAt:0,wx:null,wxErr:null,wxAt:0,wxBusy:false};
+function getPos(){return new Promise((res,rej)=>{if(!('geolocation' in navigator)){rej(new Error('nogeo'));return;}navigator.geolocation.getCurrentPosition(p=>{live.pos={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};live.posAt=Date.now();live.posErr=null;res(live.pos);},e=>{live.posErr=e&&e.code===1?'denied':'unavailable';rej(e);},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});});}
+const WMO={95:'Thunderstorm',96:'Thunderstorm with hail',99:'Severe thunderstorm with hail',65:'Heavy rain',67:'Heavy freezing rain',75:'Heavy snow',82:'Violent rain showers',86:'Heavy snow showers',57:'Freezing drizzle',45:'Fog',48:'Freezing fog'};
+function deriveAlerts(j){
+  const h=j.hourly||{};const times=h.time||[];const out=[];const seen={};
+  const fmt=i=>(times[i]||'').slice(11,16);
+  const add=(k,txt)=>{if(!seen[k]){seen[k]=1;out.push(txt);}};
+  for(let i=0;i<times.length;i++){
+    const c=h.weather_code&&h.weather_code[i];const t=h.temperature_2m&&h.temperature_2m[i];const g=h.wind_gusts_10m&&h.wind_gusts_10m[i];const pr=h.precipitation&&h.precipitation[i];const uv=h.uv_index&&h.uv_index[i];
+    if(WMO[c]&&c!==45&&c!==48)add((c===65||c===82)?'rain':'c'+c,WMO[c]+' expected around '+fmt(i));
+    if((c===45||c===48))add('fog','Fog around '+fmt(i)+'. Take care on roads.');
+    if(t>=40)add('xheat','Extreme heat: '+Math.round(t)+'°C around '+fmt(i)+'. Stay indoors and drink water.');
+    else if(t>=37&&!seen.xheat)add('heat','High heat: '+Math.round(t)+'°C around '+fmt(i)+'. Avoid the midday sun.');
+    if(t<=0)add('cold','Freezing: '+Math.round(t)+'°C around '+fmt(i)+'. Dress warmly.');
+    if(g>=60)add('wind','Strong wind gusts of '+Math.round(g)+' km/h around '+fmt(i)+'.');
+    if(pr>=7.5)add('rain','Heavy rain ('+pr.toFixed(1)+' mm in an hour) around '+fmt(i)+'.');
+    if(uv>=8)add('uv','Very high UV ('+Math.round(uv)+') around '+fmt(i)+'. Use a cap and sunscreen.');
+  }
+  return seen.xheat?out.filter(x=>!/^High heat/.test(x)):out;
+}
+async function refreshWeather(force){
+  if(live.wxBusy)return;if(!force&&live.wxAt&&Date.now()-live.wxAt<30*60000)return;
+  live.wxBusy=true;
+  let lat,lon,src;
+  try{const p=await getPos();lat=p.lat;lon=p.lon;src='your location';}
+  catch(e){const c=COORDS[DEVICE_TZ];if(c){lat=c[0];lon=c[1];src=zoneName(DEVICE_TZ);}}
+  if(lat==null){live.wxErr='noloc';live.wxBusy=false;live.wxAt=Date.now();if(route()==='home')render();return;}
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(3)+'&longitude='+lon.toFixed(3)+'&current=temperature_2m,weather_code&hourly=temperature_2m,precipitation,weather_code,wind_gusts_10m,uv_index&forecast_hours=12&timezone=auto';
+    const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('http');
+    const j=await r.json();
+    live.wx={alerts:deriveAlerts(j),temp:j.current&&j.current.temperature_2m,src};live.wxErr=null;
+  }catch(e){live.wxErr='offline';}
+  live.wxAt=Date.now();live.wxBusy=false;if(route()==='home')render();
+}
+function weatherBlock(){
+  if(live.wx){
+    const a=live.wx.alerts;
+    const head='<span class="muted">Live weather for '+esc(live.wx.src)+(live.wx.temp!=null?' · now '+Math.round(live.wx.temp)+'°C':'')+' · next 12 hours</span>';
+    if(!a.length)return '<div class="note">'+head+'<span>No weather alerts.</span></div>';
+    return '<div class="warn">'+ic('alert')+'<span><span class="label" style="color:inherit">Weather alert'+(a.length>1?'s':'')+'</span><br>'+a.map(esc).join('<br>')+'<br><span style="font-size:15px">'+'Live weather for '+esc(live.wx.src)+'</span></span></div>';
+  }
+  if(live.wxErr==='offline'){
+    if(IN_FRAME)return '';  /* preview link: outside connections are blocked, so show nothing */
+    if(navigator.onLine===false)return '<div class="muted">No internet connection. Weather alerts will appear when the phone is back online.</div>';
+    return '<div class="row" style="gap:10px"><span class="muted grow">Weather alerts are not available right now.</span><button class="btn" style="min-height:48px" data-act="wxRetry">Try again</button></div>';
+  }
+  if(live.wxErr==='noloc')return IN_FRAME?'':'<div class="muted">Allow location for this app to see weather alerts for where you are.</div>';
+  return IN_FRAME?'':'<div class="muted">Checking weather alerts…</div>';
+}
+const IS_ANDROID=/Android/i.test(navigator.userAgent||'');
+const IN_FRAME=(()=>{try{return window.top!==window.self;}catch(e){return true;}})();
+const TRANSLATE_HREF=IS_ANDROID&&!IN_FRAME?'intent://translate.google.com/#Intent;scheme=https;package=com.google.android.apps.translate;S.browser_fallback_url=https%3A%2F%2Ftranslate.google.com;end':'https://translate.google.com';
+
+/* ---------- data ---------- */
+function uid(){return Math.random().toString(36).slice(2,9);}
+function sample(){
+  const t=dateIn(DEVICE_TZ);
+  const h1=uid(),h2=uid();
+  return {sample:true,
+    profile:{name:'Asha Mehta',photo:''},
+    zones:[{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
+    contacts:[{id:uid(),name:'Rahul Mehta',relation:'Son',phone:'+91 98200 12345',whatsapp:true},{id:uid(),name:'Tour manager – Priya',relation:'Tour manager',phone:'+971 50 123 4567',whatsapp:true}],
+    group:{name:'Dubai–Turkey Seniors Tour',link:'https://chat.whatsapp.com/'},
+    meds:[{id:uid(),name:'Metformin 500 mg',photo:'',m:'1',a:'0',n:'1',note:'After food'},{id:uid(),name:'Amlodipine 5 mg',photo:'',m:'0',a:'0',n:'1',note:'Before sleep'}],
+    allergies:{food:'Peanuts',medication:'Penicillin'},
+    hotels:[{id:h1,name:'Rove Downtown',address:'Al Mustaqbal St, Dubai',phone:'+971 4 561 9000'},{id:h2,name:'Hotel Sultanahmet Palace',address:'Sultanahmet, Istanbul',phone:'+90 212 458 0460'}],
+    days:[
+      {id:uid(),date:t,place:'Burj Khalifa and Dubai Mall',location:'1 Sheikh Mohammed bin Rashid Blvd, Dubai',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy. Fountain show at 18:00.',clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1},
+      {id:uid(),date:addDays(t,1),place:'Hagia Sophia and Blue Mosque',location:'Sultanahmet Square, Istanbul',ticket:'Free entry; head covering needed at the mosque',notes:'Closed to visitors during prayer times.',clothes:'Long sleeves, stole/scarf',clothesPhoto:'',accessories:'Umbrella, light jacket',hotelId:h2},
+      {id:uid(),date:addDays(t,2),place:'Bosphorus cruise',location:'Eminönü pier, Istanbul',ticket:'Included in tour package',notes:'Boarding at 11:00 sharp.',clothes:'Warm sweater',clothesPhoto:'',accessories:'Jacket, motion-sickness tablet',hotelId:h2}
+    ],
+    flights:[{id:uid(),date:t,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'Dubai International Airport Terminal 3',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
+  };
+}
+function blank(){return {sample:false,profile:{name:'',photo:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
+function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:''},d.profile||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});return d;}
+let data;
+let storageOk=true;
+try{const raw=localStorage.getItem(KEY);data=raw?normalize(JSON.parse(raw)):sample();}catch(e){storageOk=false;data=sample();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));storageOk=true;return true;}catch(e){storageOk=false;toast('Could not save on this phone. Storage is full or blocked. Export a backup from Configuration.');return false;}}
+
+/* ---------- UI state ---------- */
+const open={};             // collapsed sections on home
+let tourOpen=true;         // guided tour group in menu
+let edit=null;             // {kind, id|null}
+let draftPhotos={};
+let pendingDelete=null;
+let tourStep=0;
+let importArmed=null;
+let resetArmed=null;
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,3500);}
+
+const PARENT={menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
+function valid(r){return (r==='home'||PARENT[r])?r:'home';}
+let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
+function route(){return cur;}
+function resetUi(){edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
+function go(r,fromHistory){r=valid(r);const changed=r!==cur;cur=r;resetUi();
+  if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
+  render();try{window.scrollTo(0,0);}catch(e){}}
+
+/* ---------- shared bits ---------- */
+function top(title,back){return '<div class="top"><a class="iconbtn" href="#'+back+'" aria-label="Back">'+ic('back')+'</a><h1>'+esc(title)+'</h1></div>';}
+function photoBox(src,w,h,label){return '<div class="ph" style="width:'+w+';height:'+h+'">'+(src?'<img alt="" src="'+esc(src)+'">':esc(label||'No photo'))+'</div>';}
+function waNum(p){return (p||'').replace(/[^\d]/g,'');}
+function telHref(p){return 'tel:'+(p||'').replace(/[^\d+]/g,'');}
+function emptyRow(icon,title,to){return '<a class="empty" href="#'+to+'">'+ic(icon,24)+'<span class="grow"><b>'+esc(title)+': nothing added</b>Add it from Configuration</span>'+ic('plus',22)+'</a>';}
+function section(key,icon,title,sub,count,body){
+  const o=!!open[key];
+  return '<section class="sec"><button type="button" class="sechead" data-act="toggle" data-key="'+key+'" aria-expanded="'+o+'">'+ic(icon)+'<span class="grow"><span class="t">'+esc(title)+'</span><span class="s">'+sub+'</span></span><span class="badge" aria-label="'+count+' items">'+count+'</span>'+ic(o?'up':'down',24)+'</button>'+(o?body:'')+'</section>';
+}
+function hotelById(id){return data.hotels.find(h=>h.id===id);}
+function dayFor(ds){return data.days.find(d=>d.date===ds);}
+
+/* ---------- HOME ---------- */
+function homeView(){
+  const now=new Date();
+  const today=dateIn(DEVICE_TZ,now), tomorrow=addDays(today,1);
+  const tday=dayFor(today), nday=dayFor(tomorrow);
+  const hr=hourIn(DEVICE_TZ,now);
+  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  const p=data.profile;
+  let h='<div class="top"><a class="iconbtn" href="#menu" aria-label="Open menu">'+ic('menu',28)+'</a><div class="hello"><small>'+greet+'</small><b>'+esc(p.name||'Traveller')+'</b></div>'+(p.photo?'<img class="avatar" alt="" src="'+esc(p.photo)+'">':'<div class="avatar">'+ic('user',28)+'</div>')+'</div><main>';
+  if(data.sample){h+='<div class="banner"><b>This is a sample trip for testing.</b><span>Change it in Configuration, or start with an empty trip.</span>'+(resetArmed==='sample'?'<button class="btn danger" data-act="clearSample">Tap again to clear the sample</button>':'<button class="btn" data-act="armClearSample">Start with an empty trip</button>')+'</div>';}
+  if(!storageOk){h+='<div class="warn">'+ic('alert')+'<span>This phone is not keeping your changes. Export a backup from Configuration before closing.</span></div>';}
+
+  /* Time */
+  const di=dayInfo(DEVICE_TZ,now);
+  let dl='';
+  if(di.day&&di.set){dl='Daylight until <b>'+fmtTime(DEVICE_TZ,di.set)+'</b> · '+dur(di.set-now)+' left';}
+  else if(!di.day&&di.rise){dl='Night now · sunrise at <b>'+fmtTime(DEVICE_TZ,di.rise)+'</b>';}
+  else{dl=di.day?'Daytime':'Night time';}
+  h+='<section class="sec"><h2>'+ic('clock')+'Time</h2><div class="card strong"><div class="row"><span role="img" aria-label="'+(di.day?'Day':'Night')+'">'+ic(di.day?'sun':'moon',32,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(zoneName(DEVICE_TZ))+'</b><br><span class="muted">'+(di.day?'Day':'Night')+'</span></span><span class="big">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
+     '<div class="note" style="flex-direction:row;align-items:center;gap:10px">'+ic('sunset',24,'sun')+'<span>'+dl+'</span></div>'+
+     weatherBlock()+'</div>';
+  const istDay=dayInfo('Asia/Kolkata',now).day;
+  h+='<div class="card" style="flex-direction:row;align-items:center"><span role="img" aria-label="'+(istDay?'Day':'Night')+'">'+ic(istDay?'sun':'moon',30,istDay?'sun':'moon')+'</span><span class="grow"><b>India (IST)</b><br><span class="muted">'+(istDay?'Day':'Night')+'</span></span><span class="big" style="font-size:28px">'+fmtTime('Asia/Kolkata',now)+'</span></div></section>';
+
+  /* Other zones */
+  const zs=data.zones.filter(z=>validTz(z.tz));
+  if(zs.length){
+    const body='<div class="grid2">'+zs.map(z=>{const d=dayInfo(z.tz,now).day;return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span><span class="muted">'+(d?'Day':'Night')+'</span></div><b style="overflow-wrap:anywhere">'+esc(z.label||zoneName(z.tz))+'</b><span class="t">'+fmtTime(z.tz,now)+'</span></div>'}).join('')+'</div>';
+    h+=section('zones','globe','Other time zones',esc(zs.map(z=>z.label||zoneName(z.tz)).join(' · ')),zs.length,body);
+  }
+
+  /* Contacts */
+  if(data.contacts.length){
+    const body='<div style="display:flex;flex-direction:column;gap:12px">'+data.contacts.map(c=>'<div class="card"><div><b style="font-size:20px">'+esc(c.name)+'</b><br><span class="muted">'+esc([c.relation,c.phone].filter(Boolean).join(' · '))+'</span></div><div class="grid2"><a class="btn primary" href="'+telHref(c.phone)+'">'+ic('phone',22)+'Call</a>'+(c.whatsapp&&waNum(c.phone)?'<a class="btn" href="https://wa.me/'+waNum(c.phone)+'" target="_blank" rel="noopener">'+ic('chat',22)+'WhatsApp</a>':'<span class="btn" aria-disabled="true" style="opacity:.5">No WhatsApp</span>')+'</div></div>').join('')+'</div>';
+    h+=section('contacts','phone','Emergency contacts','Call or WhatsApp',data.contacts.length,body);
+  }
+
+  /* Group + Translate tiles */
+  const g=data.group;
+  const trTile='<a class="tile" href="'+TRANSLATE_HREF+'" target="_blank" rel="noopener">'+ic('translate')+'<b>Google Translate</b><span>Opens the Translate app</span></a>';
+  h+=g.link?'<div class="grid2"><a class="tile" href="'+esc(g.link)+'" target="_blank" rel="noopener">'+ic('group')+'<b>Tour WhatsApp group</b><span>'+esc(g.name||'Opens WhatsApp')+'</span></a>'+trTile+'</div>':trTile;
+
+  /* Medication */
+  const al=[data.allergies.food,data.allergies.medication].filter(x=>x&&x.trim());
+  const mc=data.meds.length+al.length;
+  if(mc){
+    let body='<div class="card">';
+    if(data.meds.length){body+='<span class="label">To be taken</span>'+data.meds.map(m=>'<div class="note" style="gap:10px"><div class="row">'+photoBox(m.photo,'64px','64px','Photo')+'<span class="grow"><b style="font-size:19px">'+esc(m.name)+'</b><br><span class="muted">'+esc((m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+(m.note?' · '+m.note:''))+'</span></span></div><div class="dose" role="img" aria-label="Dosage '+esc((m.m||0)+'-'+(m.a||0)+'-'+(m.n||0))+'">'+[['m','Morning'],['a','Afternoon'],['n','Night']].map(([k,l])=>'<div class="'+(m[k]&&m[k]!=='0'?'on':'')+'"><b>'+esc(m[k]||'0')+'</b><span>'+l+'</span></div>').join('')+'</div></div>').join('');}
+    if(al.length){body+='<span class="label">Allergies</span>'+(data.allergies.food?'<div class="warn"><span><b>Food</b><br>'+esc(data.allergies.food)+'</span></div>':'')+(data.allergies.medication?'<div class="warn"><span><b>Medication</b><br>'+esc(data.allergies.medication)+'</span></div>':'');}
+    body+='</div>';
+    h+=section('meds','pill','Critical medication',data.meds.length+' medicine'+(data.meds.length===1?'':'s')+' · '+al.length+' allerg'+(al.length===1?'y':'ies'),mc,body);
+  }
+
+  /* Today */
+  if(tday){
+    h+=section('itin','cal',"Today's itinerary",esc(tday.place),1,dayCard(tday,true));
+  }
+
+  /* Location */
+  let locInner;
+  if(live.pos){
+    const ll=live.pos.lat.toFixed(5)+','+live.pos.lon.toFixed(5);
+    const mapUrl='https://maps.google.com/?q='+ll;
+    const msg=(data.profile.name?data.profile.name+' – ':'')+'My current location: '+mapUrl;
+    locInner='<div class="note"><span class="label">Current location</span><b style="font-variant-numeric:tabular-nums">'+ll+'</b><span class="muted">Accurate to about '+live.pos.acc+' m · found at '+fmtTime(DEVICE_TZ,new Date(live.posAt))+'</span><a href="'+mapUrl+'" target="_blank" rel="noopener" style="font-weight:700;min-height:44px;display:flex;align-items:center">Show on Google Maps</a></div>'+
+      '<a class="btn primary" href="https://wa.me/?text='+enc(msg)+'" target="_blank" rel="noopener">'+ic('chat',22)+'Share location on WhatsApp</a>'+
+      '<p class="muted" style="margin:0">WhatsApp opens with your location link ready. Pick a person or the tour group and tap Send.</p>'+
+      '<button class="btn" data-act="locate">'+ic('pin',22)+'Update my location</button>';
+  } else {
+    locInner='<button class="btn primary" data-act="locate">'+ic('pin',22)+(live.locBusy?'Finding your location…':'Find my location to share')+'</button>'+
+      (live.posErr==='denied'?'<div class="warn">'+ic('alert')+'<span>Location is blocked for this app. Allow location in the browser settings, then try again.</span></div>':'')+
+      (live.posErr==='unavailable'?'<div class="warn">'+ic('alert')+'<span>Your location could not be found here. Turn on Location on the phone and try again.</span></div>':'');
+  }
+  const locBody='<div class="card">'+locInner+
+    '<div class="grid2"><a class="btn" style="min-height:72px;flex-direction:column;gap:4px" href="'+(live.pos?'https://www.google.com/maps/search/police+station/@'+live.pos.lat+','+live.pos.lon+',15z':'https://www.google.com/maps/search/police+station+near+me')+'" target="_blank" rel="noopener">'+ic('shield',22)+'Police nearby</a><a class="btn" style="min-height:72px;flex-direction:column;gap:4px" href="'+(live.pos?'https://www.google.com/maps/search/hospital/@'+live.pos.lat+','+live.pos.lon+',15z':'https://www.google.com/maps/search/hospital+near+me')+'" target="_blank" rel="noopener">'+ic('cross',22)+'Hospital nearby</a></div></div>';
+  h+=section('loc','pin','Where I am now','Share location · Police · Hospital',3,locBody);
+
+  /* Tomorrow */
+  if(nday){
+    const changed=tday&&nday.hotelId&&tday.hotelId!==nday.hotelId;
+    h+=section('tom','calnext','Tomorrow',esc(nday.place)+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),1,dayCard(nday,false,changed));
+  }
+
+  /* Flight */
+  const fl=data.flights.filter(f=>f.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(fl.length){
+    const f0=fl[0];const dep=zonedToDate(f0.date,f0.time,validTz(f0.tz)?f0.tz:DEVICE_TZ);
+    const sub=esc(f0.number)+(dep?(dep>now?' · leaves in '+dur(dep-now):' · departed'):'');
+    h+=section('flight','plane',"Today's flight",sub,fl.length,'<div style="display:flex;flex-direction:column;gap:12px">'+fl.map(f=>flightCard(f,now)).join('')+'</div>');
+  }
+
+  h+='</main>';
+  return h;
+}
+function dayCard(d,isToday,hotelChanged){
+  const ho=hotelById(d.hotelId);
+  let b='<div class="card">';
+  b+='<div><b style="font-size:22px">'+esc(d.place)+'</b>'+(d.location?'<br><span class="muted">'+esc(d.location)+'</span>':'')+'</div>';
+  if(d.location)b+='<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination='+enc(d.location)+'" target="_blank" rel="noopener">'+ic('pin',22)+'Directions</a>';
+  if(d.ticket)b+='<div class="note"><span class="label">'+'Ticket suggestion</span><span>'+esc(d.ticket)+'</span></div>';
+  if(d.clothes||d.clothesPhoto)b+='<div class="row">'+photoBox(d.clothesPhoto,'80px','80px','Outfit')+'<span class="grow"><span class="label">Wear</span><br>'+esc(d.clothes)+'</span></div>';
+  if(d.accessories)b+='<div class="row">'+ic('bag',26)+'<span class="grow"><span class="label">Carry</span><br>'+esc(d.accessories)+'</span></div>';
+  if(d.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(d.notes)+'</span></div>';
+  if(ho){
+    b+='<div class="'+(hotelChanged?'warn':'note')+'" style="flex-direction:column;gap:8px"><span class="label" style="color:inherit">'+(hotelChanged?'Hotel changes tomorrow':'Hotel')+'</span><span><b style="font-size:19px">'+esc(ho.name)+'</b><br>'+esc(ho.address)+'</span>'+(ho.phone?'<span>'+esc(ho.phone)+'</span><a class="btn primary" href="'+telHref(ho.phone)+'">'+ic('phone',22)+'Call hotel</a>':'')+'</div>';
+  }
+  if(isToday)b+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';
+  return b+'</div>';
+}
+function flightCard(f,now){
+  const tz=validTz(f.tz)?f.tz:DEVICE_TZ;const dep=zonedToDate(f.date,f.time,tz);
+  let left='';if(dep){left=dep>now?'Leaves in '+dur(dep-now):'Departed '+dur(now-dep)+' ago';}
+  return '<div class="card"><span class="label">Flight '+esc(f.number)+'</span><div class="row" style="justify-content:space-between"><b style="font-size:22px;overflow-wrap:anywhere" class="grow">'+esc(f.from)+'</b>'+ic('chev',28)+'<b style="font-size:22px;text-align:right;overflow-wrap:anywhere" class="grow">'+esc(f.to)+'</b></div>'+
+   '<div><span>Departs '+esc(f.time)+' local time ('+esc(zoneName(tz))+')</span><br><b style="font-size:22px">'+left+'</b></div>'+
+   (f.airport?'<a class="btn primary" href="https://www.google.com/maps/dir/?api=1&destination='+enc(f.airport)+'" target="_blank" rel="noopener">'+ic('pin',22)+'Directions to airport</a>':'')+
+   (f.number?'<a class="btn" href="https://www.google.com/search?q='+enc(f.number+' flight status')+'" target="_blank" rel="noopener">'+ic('search',22)+'Search flight on Google</a>':'')+
+   (f.notes?'<div class="note"><span class="label">Flight notes</span><span>'+esc(f.notes)+'</span></div>':'')+'</div>';
+}
+
+/* ---------- MENU ---------- */
+function menuView(){
+  const sub=[['tour','mobile','App tour','Learn this app step by step'],['wifi','wifi','Wi-Fi connection','Join hotel or café Wi-Fi'],['network','signal','Phone network connection','Roaming, SIM and mobile data'],['inflight','plane','In-flight network connection','Connect to Wi-Fi on the plane'],['translate','translate','Translate','Google Translate: speak, type, camera']];
+  let h='<div class="top"><a class="iconbtn" href="#home" aria-label="Close menu">'+ic('close')+'</a><h1>Menu</h1></div><main><nav class="navlist" aria-label="Main menu">';
+  h+='<button type="button" class="navitem" data-act="tourToggle" aria-expanded="'+tourOpen+'">'+ic('compass',28)+'<span class="grow"><span class="t">Guided tour</span><span class="s">Step-by-step help</span></span>'+ic(tourOpen?'up':'down',22)+'</button>';
+  if(tourOpen)h+='<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 12px 12px;border-bottom:1px solid var(--line)">'+sub.map(s=>'<a class="subitem" href="#'+s[0]+'">'+ic(s[1],24)+'<span class="grow"><span class="t">'+s[2]+'</span><span class="s">'+s[3]+'</span></span>'+ic('chev',22)+'</a>').join('')+'</div>';
+  h+='<a class="navitem" href="#itinerary">'+ic('cal',28)+'<span class="grow"><span class="t">View itinerary</span></span>'+ic('chev',22)+'</a>';
+  h+='<a class="navitem" href="#config">'+ic('sliders',28)+'<span class="grow"><span class="t">Configuration</span><span class="s">Trip, safety, profile, backup</span></span>'+ic('chev',22)+'</a>';
+  h+='</nav><p class="foot">'+BUILD+' · All data is saved on this phone only.</p></main>';
+  return h;
+}
+
+/* ---------- ITINERARY ---------- */
+function itineraryView(){
+  const today=dateIn(DEVICE_TZ);
+  const days=data.days.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  let h=top('Itinerary','menu')+'<main>';
+  if(!days.length)h+=emptyRow('cal','Itinerary','days');
+  let prevHotel=null;
+  days.forEach((d,i)=>{
+    const ho=hotelById(d.hotelId);const changed=i>0&&d.hotelId&&prevHotel&&d.hotelId!==prevHotel;prevHotel=d.hotelId||prevHotel;
+    const fl=data.flights.filter(f=>f.date===d.date);
+    h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div><b style="font-size:22px">'+esc(d.place)+'</b>'+(d.location?'<span class="muted">'+esc(d.location)+'</span>':'')+
+      (d.ticket?'<span><b>Ticket:</b> '+esc(d.ticket)+'</span>':'')+
+      (ho?'<span'+(changed?' class="warn" style="padding:8px 10px;border-width:1px"':'')+'><b>'+(changed?'Hotel changes: ':'Hotel: ')+'</b>'+esc(ho.name)+'</span>':'')+
+      fl.map(f=>'<span><b>Flight:</b> '+esc(f.number+' '+f.from+' → '+f.to+', '+f.time)+'</span>').join('')+'</div>';
+  });
+  h+='<a class="btn" href="#days">'+ic('edit',22)+'Edit itinerary</a></main>';
+  return h;
+}
+
+/* ---------- CONFIG ---------- */
+function configView(){
+  const row=(r,i,t,s)=>'<a class="navitem" href="#'+r+'">'+ic(i,28)+'<span class="grow"><span class="t">'+t+'</span><span class="s">'+s+'</span></span>'+ic('chev',22)+'</a>';
+  return top('Configuration','menu')+'<main><nav class="navlist" aria-label="Configuration">'+
+   '<div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name and photo')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+
+   '<div class="grouplabel">TRIP</div>'+row('days','cal','Itinerary days',data.days.length+' days · tickets, clothes, accessories')+row('hotels','bed','Hotels',data.hotels.length+' hotels')+row('flights','plane','Flights',data.flights.length+' flights')+
+   '<div class="grouplabel">SAFETY</div>'+row('meds','pill','Critical medication',data.meds.length+' medicines · allergies')+row('contacts','phone','Emergency contacts',data.contacts.length+' contacts')+row('group','group','Tour WhatsApp group',data.group.link?'Link added':'No link yet')+
+   '<div class="grouplabel">BACKUP</div>'+row('backup','dl','Export / Import','Save or load a .zip with data and photos')+
+   '</nav><p class="foot">Changes are saved on this phone as soon as you tap Save.</p></main>';
+}
+
+/* ---------- generic list editors ---------- */
+const TZS=(()=>{try{return Intl.supportedValuesOf('timeZone')}catch(e){return Object.keys(COORDS)}})();
+const FORMS={
+  days:{title:'Itinerary days',one:'day',sort:(a,b)=>(a.date||'').localeCompare(b.date||''),line:d=>[nice(d.date),d.place],fields:[
+    ['date','Date','date',1],['place','Place name','text',1],['location','Location / address','text'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
+  hotels:{title:'Hotels',one:'hotel',line:h=>[h.name,h.address],fields:[['name','Hotel name','text',1],['address','Address','text'],['phone','Phone (with country code)','tel']]},
+  flights:{title:'Flights',one:'flight',sort:(a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')),line:f=>[nice(f.date)+' · '+(f.time||''),f.number+' '+f.from+' → '+f.to],fields:[
+    ['date','Date','date',1],['number','Flight number','text',1],['from','From','text'],['to','To','text'],['time','Departure time (local)','time',1],['tz','Departure time zone','tz'],['airport','Airport (for directions)','text'],['notes','Notes for the flight','textarea']]},
+  meds:{title:'Critical medication',one:'medicine',line:m=>[m.name,(m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+(m.note?' · '+m.note:'')],fields:[
+    ['name','Medicine name','text',1],['photo','Photo of the medicine','photo'],['m','Morning','dose'],['a','Afternoon','dose'],['n','Night','dose'],['note','Instructions (e.g. after food)','text']]},
+  contacts:{title:'Emergency contacts',one:'contact',line:c=>[c.name,[c.relation,c.phone].filter(Boolean).join(' · ')],fields:[['name','Name','text',1],['relation','Relation','text'],['phone','Phone (with country code)','tel',1],['whatsapp','Has WhatsApp on this number','check']]}
+};
+function fieldHtml(f,item){
+  const [k,label,type,req]=f;const v=item?item[k]:'';const id='f-'+k;const r=req?' required':'';
+  if(type==='textarea')return '<label class="f" for="'+id+'">'+label+'<textarea id="'+id+'"'+r+'>'+esc(v)+'</textarea></label>';
+  if(type==='check')return '<label class="chk"><input type="checkbox" id="'+id+'"'+(item?(v?' checked':''):' checked')+'>'+label+'</label>';
+  if(type==='photo'){const cur=k in draftPhotos?draftPhotos[k]:v;return '<div class="f" style="display:flex;flex-direction:column;gap:6px"><b style="font-size:17px">'+label+'</b><div class="row">'+photoBox(cur,'88px','88px')+'<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="'+id+'" style="min-height:52px">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="'+id+'" data-photo="'+k+'" hidden>'+(cur?'<button type="button" class="btn" style="min-height:48px" data-act="rmPhoto" data-key="'+k+'">Remove photo</button>':'')+'</span></div></div>';}
+  if(type==='hotel')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'"><option value="">None</option>'+data.hotels.map(h=>'<option value="'+esc(h.id)+'"'+(h.id===v?' selected':'')+'>'+esc(h.name)+'</option>').join('')+'</select></label>'+(data.hotels.length?'':'<span class="muted">Add hotels first under Configuration › Hotels.</span>');
+  if(type==='dose')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'">'+['0','½','1','2','3'].map(o=>'<option'+(String(v||'0')===o?' selected':'')+'>'+o+'</option>').join('')+'</select></label>';
+  if(type==='tz')return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" list="tzlist" value="'+esc(v||DEVICE_TZ)+'" autocomplete="off"></label>';
+  return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" type="'+type+'" value="'+esc(v)+'"'+r+(type==='tel'?' inputmode="tel"':'')+'></label>';
+}
+function listView(kind){
+  const F=FORMS[kind];const list=data[kind];
+  if(edit&&edit.kind===kind){
+    const item=edit.id?list.find(x=>x.id===edit.id):null;
+    let h=top((item?'Edit ':'Add ')+F.one,kind)+'<main><form data-form="'+kind+'" novalidate>'+F.fields.map(f=>fieldHtml(f,item)).join('');
+    if(kind==='flights'||kind==='days'&&false){}
+    h+='<datalist id="tzlist">'+TZS.map(t=>'<option value="'+esc(t)+'">').join('')+'</datalist>';
+    h+='<p class="muted" id="formerr" role="alert" style="margin:0"></p><button class="btn primary" type="button" data-act="submitForm">Save</button><button class="btn" type="button" data-act="cancelEdit">Cancel</button></form></main>';
+    return h;
+  }
+  const items=F.sort?list.slice().sort(F.sort):list;
+  let h=top(F.title,'config')+'<main>';
+  if(kind==='meds'){
+    h+='<form data-form="allergies" class="card"><span class="label">Allergies</span><label class="f" for="al-food">Food<input id="al-food" value="'+esc(data.allergies.food)+'" placeholder="e.g. Peanuts"></label><label class="f" for="al-med">Medication<input id="al-med" value="'+esc(data.allergies.medication)+'" placeholder="e.g. Penicillin"></label><button class="btn primary" type="button" data-act="submitForm">Save allergies</button></form><span class="label">Medicines</span>';
+  }
+  if(!items.length)h+='<p class="muted">Nothing added yet.</p>';
+  items.forEach(it=>{
+    const [a,b]=F.line(it);
+    h+='<div class="listrow"><span class="grow"><b style="font-size:19px;overflow-wrap:anywhere">'+esc(a)+'</b><br><span class="muted" style="overflow-wrap:anywhere">'+esc(b)+'</span></span>'+
+      (pendingDelete===it.id?'<button class="btn danger" data-act="del" data-kind="'+kind+'" data-id="'+it.id+'">Tap to delete</button>':
+      '<button class="iconbtn" style="width:52px;height:52px" data-act="edit" data-kind="'+kind+'" data-id="'+it.id+'" aria-label="Edit '+esc(a)+'">'+ic('edit',22)+'</button><button class="iconbtn" style="width:52px;height:52px" data-act="armDel" data-id="'+it.id+'" aria-label="Delete '+esc(a)+'">'+ic('trash',22)+'</button>')+'</div>';
+  });
+  h+='<button class="btn primary" data-act="add" data-kind="'+kind+'">'+ic('plus',22)+'Add '+F.one+'</button></main>';
+  return h;
+}
+
+/* ---------- PROFILE & ZONES ---------- */
+function profileView(){
+  const p=data.profile;const cur='photo' in draftPhotos?draftPhotos.photo:p.photo;
+  let h=top('Profile','config')+'<main><form data-form="profile" class="card"><span class="label">My profile</span><div class="row">'+(cur?'<img class="avatar" style="width:88px;height:88px" alt="" src="'+esc(cur)+'">':'<div class="avatar" style="width:88px;height:88px">'+ic('user',36)+'</div>')+
+   '<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="f-photo">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="f-photo" data-photo="photo" hidden>'+(cur?'<button type="button" class="btn" data-act="rmPhoto" data-key="photo">Remove photo</button>':'')+'</span></div>'+
+   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
+  return h;
+}
+function zonesView(){
+  let h=top('Time zones','config')+'<main><div class="card"><span class="label">Time zones on home screen</span><p class="muted" style="margin:0">Local time and India (IST) always show. Use the arrows to set the order of the rest.</p>';
+  data.zones.forEach((z,i)=>{h+='<div class="listrow" style="background:var(--bg)"><span class="grow"><b>'+(i+1)+'. '+esc(z.label||zoneName(z.tz))+'</b><br><span class="muted">'+esc(z.tz)+(validTz(z.tz)?' · now '+fmtTime(z.tz):' · not a valid zone')+'</span></span><button class="iconbtn" style="width:48px;height:48px" data-act="zUp" data-i="'+i+'" aria-label="Move up"'+(i===0?' disabled':'')+'>'+ic('up',20)+'</button><button class="iconbtn" style="width:48px;height:48px" data-act="zDown" data-i="'+i+'" aria-label="Move down"'+(i===data.zones.length-1?' disabled':'')+'>'+ic('down',20)+'</button><button class="iconbtn" style="width:48px;height:48px" data-act="zDel" data-i="'+i+'" aria-label="Remove">'+ic('trash',20)+'</button></div>';});
+  h+='<form data-form="zone" style="gap:10px"><label class="f" for="z-label">Name to show<input id="z-label" placeholder="e.g. Dubai"></label><label class="f" for="z-tz">Time zone<input id="z-tz" list="tzlist" placeholder="e.g. Asia/Dubai" autocomplete="off"></label><datalist id="tzlist">'+TZS.map(t=>'<option value="'+esc(t)+'">').join('')+'</datalist><p class="muted" id="zerr" role="alert" style="margin:0"></p><button class="btn" type="button" data-act="submitForm">'+ic('plus',22)+'Add time zone</button></form></div></main>';
+  return h;
+}
+function groupView(){
+  return top('Tour WhatsApp group','config')+'<main><form data-form="group" class="card"><label class="f" for="g-name">Group name<input id="g-name" value="'+esc(data.group.name)+'"></label><label class="f" for="g-link">Invite link<input id="g-link" value="'+esc(data.group.link)+'" placeholder="https://chat.whatsapp.com/…" inputmode="url"></label><p class="muted" style="margin:0">In WhatsApp, open the group, tap its name, then Invite via link, then Copy link. Paste it here.</p><p class="muted" id="gerr" role="alert" style="margin:0"></p><button class="btn primary" type="button" data-act="submitForm">Save</button></form></main>';
+}
+
+/* ---------- BACKUP ---------- */
+function backupView(){
+  return top('Export / Import','config')+'<main>'+
+   '<div class="card"><h2>'+ic('dl')+'Export</h2><p style="margin:0">Saves all trip details and photos into one .zip file. Keep it as a backup or send it to family.</p><button class="btn primary" data-act="export">Export as .zip</button></div>'+
+   '<div class="card"><h2>'+ic('ul')+'Import</h2><p style="margin:0">Load a trip someone prepared for you from a .zip file.</p><div class="warn">'+ic('alert')+'<span>This replaces the trip on this phone.</span></div><label class="btn" for="importfile">Choose .zip file</label><input type="file" id="importfile" accept=".zip,application/zip" hidden>'+
+   (importArmed?'<div class="note"><b>'+esc(importArmed.name)+'</b><span>Replace the trip on this phone with this file?</span><button class="btn danger" data-act="doImport">Replace my trip</button><button class="btn" data-act="cancelImport">Cancel</button></div>':'')+'</div>'+
+   '<div class="card"><span class="label">Testing tools</span>'+(resetArmed==='reset'?'<button class="btn danger" data-act="doReset">Tap again to load the sample trip</button>':'<button class="btn" data-act="armReset">Load the sample trip</button>')+(resetArmed==='wipe'?'<button class="btn danger" data-act="doWipe">Tap again to delete everything</button>':'<button class="btn" data-act="armWipe">Delete all data on this phone</button>')+'</div></main>';
+}
+
+/* ---------- GUIDED TOUR pages ---------- */
+const TOUR=[
+ ['menu','The menu button','Top left on the home screen. It opens Guided tour, View itinerary and Configuration.'],
+ ['clock','Time','Your local time, how much daylight is left, live weather alerts, and India time. Other time zones are one tap below.'],
+ ['phone','Emergency contacts','Tap to open. Each person has a Call button and a WhatsApp button.'],
+ ['pill','Medication','Your medicines with photos and when to take them, shown as Morning-Afternoon-Night (for example 1-0-1), plus allergies.'],
+ ['cal','Today and tomorrow','Where you are going, ticket tips, what to wear and carry, and your hotel. A hotel change is highlighted.'],
+ ['pin','Where I am now','Share your location on WhatsApp, or find the nearest police station or hospital.'],
+ ['sliders','Configuration','Family or the tour manager can fill in everything here, then export it as a .zip for you to import.']
+];
+function tourView(){
+  const s=TOUR[tourStep];
+  return top('App tour','menu')+'<main><div class="step" aria-hidden="true">'+TOUR.map((_,i)=>'<i class="'+(i<=tourStep?'on':'')+'"></i>').join('')+'</div><div class="card strong" style="min-height:260px;justify-content:center;align-items:flex-start">'+ic(s[0],48)+'<span class="muted">Step '+(tourStep+1)+' of '+TOUR.length+'</span><b style="font-size:26px">'+s[1]+'</b><p style="margin:0;font-size:20px">'+s[2]+'</p></div><div class="grid2"><button class="btn" data-act="tourPrev"'+(tourStep===0?' disabled style="opacity:.5"':'')+'>Back</button>'+(tourStep<TOUR.length-1?'<button class="btn primary" data-act="tourNext">Next</button>':'<a class="btn primary" href="#home">Finish</a>')+'</div></main>';
+}
+const HELP={
+ wifi:['Wi-Fi connection','wifi',['Ask the hotel reception for the Wi-Fi name and password. It is often printed on the room key card.','Swipe down from the top of the screen and press and hold the Wi-Fi icon.','Tap the network with the hotel name, type the password, then tap Connect.','If a hotel page opens in the browser, enter your room number and surname to finish.'],'Avoid banking on open café Wi-Fi.'],
+ network:['Phone network connection','signal',['Before you fly, check with your mobile company that international roaming is switched on for your number.','Abroad, open Settings, then Network & internet, then SIMs, and turn on Roaming.','If you bought a local SIM or eSIM, select it for Mobile data in the same SIMs screen.','Restart the phone if there is no signal after landing.'],'Roaming data can be costly. Turn Roaming off when you are on hotel Wi-Fi.'],
+ inflight:['In-flight network connection','plane',['Switch on Aeroplane mode when the crew asks.','Turn Wi-Fi back on: swipe down and tap the Wi-Fi icon. Aeroplane mode stays on.','Choose the airline network (for example OnAir or the airline name).','Open the browser. The airline page opens; pick the free messaging plan or buy a plan.'],'Not every flight has Wi-Fi. Check the seat card or ask the crew.'],
+ translate:['Translate','translate',['Tap Open Google Translate below. The Translate app opens; if it is not installed, the website opens.','Choose your language on the left and the local language on the right.','Tap the microphone and speak, then show the screen to the other person.','Tap Camera to translate signs and menus by pointing the phone at them.'],'Conversation mode lets both people speak in turn.']
+};
+function helpView(k){
+  const [t,icon,steps,tip]=HELP[k];
+  return top(t,'menu')+'<main class="help"><div class="card">'+ic(icon,40)+'<ol>'+steps.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ol></div><div class="note"><b>Tip</b><span>'+esc(tip)+'</span></div>'+
+   (k==='translate'?'<a class="btn primary" href="'+TRANSLATE_HREF+'" target="_blank" rel="noopener">'+ic('translate',22)+'Open Google Translate</a>':'')+'</main>';
+}
+
+/* ---------- render ---------- */
+function render(){
+  const r=route();const app=document.getElementById('app');
+  let h;
+  if(r==='home')h=homeView();
+  else if(r==='menu')h=menuView();
+  else if(r==='itinerary')h=itineraryView();
+  else if(r==='config')h=configView();
+  else if(r==='profile')h=profileView();
+  else if(r==='zones')h=zonesView();
+  else if(r==='group')h=groupView();
+  else if(r==='backup')h=backupView();
+  else if(r==='tour')h=tourView();
+  else if(HELP[r])h=helpView(r);
+  else if(FORMS[r])h=listView(r);
+  else h=homeView();
+  app.innerHTML='<div class="app-inner">'+h+'</div>';
+}
+window.addEventListener('online',()=>refreshWeather(true));
+window.addEventListener('popstate',()=>{let r='home';try{r=(location.hash||'').slice(1);}catch(e){}go(r,true);});
+window.addEventListener('hashchange',()=>{let r='home';try{r=(location.hash||'').slice(1);}catch(e){}if(valid(r)!==cur)go(r,true);});
+/* in-app navigation: handle every #route link ourselves so it works inside any viewer */
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;e.preventDefault();go(a.getAttribute('href').slice(1));},true);
+
+/* ---------- photos ---------- */
+function shrink(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(new Error('read'));fr.onload=()=>{const img=new Image();img.onload=()=>{const max=640;let w=img.width,h=img.height;const s=Math.min(1,max/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);res(c.toDataURL('image/jpeg',0.72));};img.onerror=()=>rej(new Error('image'));img.src=fr.result;};fr.readAsDataURL(file);});}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  if(a==='toggle'){open[b.dataset.key]=!open[b.dataset.key];render();return;}
+  if(a==='locate'){live.locBusy=true;live.posErr=null;render();getPos().then(()=>{live.locBusy=false;toast('Location found');render();refreshWeather(true);}).catch(()=>{live.locBusy=false;render();});return;}
+  if(a==='tourToggle'){tourOpen=!tourOpen;render();return;}
+  if(a==='armClearSample'){resetArmed='sample';render();return;}
+  if(a==='clearSample'){data=blank();resetArmed=null;save();toast('Sample cleared. Add your trip in Configuration.');render();return;}
+  if(a==='add'){edit={kind:b.dataset.kind,id:null};draftPhotos={};render();window.scrollTo(0,0);return;}
+  if(a==='edit'){edit={kind:b.dataset.kind,id:b.dataset.id};draftPhotos={};render();window.scrollTo(0,0);return;}
+  if(a==='cancelEdit'){edit=null;draftPhotos={};render();return;}
+  if(a==='armDel'){pendingDelete=b.dataset.id;render();return;}
+  if(a==='del'){const k=b.dataset.kind;data[k]=data[k].filter(x=>x.id!==b.dataset.id);if(k==='hotels')data.days.forEach(d=>{if(d.hotelId===b.dataset.id)d.hotelId=''});pendingDelete=null;data.sample=false;save();toast('Deleted');render();return;}
+  if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';render();return;}
+  if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
+  if(a==='zDel'){data.zones.splice(+b.dataset.i,1);save();render();return;}
+  if(a==='tourNext'){tourStep=Math.min(TOUR.length-1,tourStep+1);render();return;}
+  if(a==='tourPrev'){tourStep=Math.max(0,tourStep-1);render();return;}
+  if(a==='submitForm'){const f=b.closest('form[data-form]');if(f)handleSubmit(f);return;}
+  if(a==='wxRetry'){refreshWeather(true);return;}
+  if(a==='export'){doExport();return;}
+  if(a==='doImport'){doImport();return;}
+  if(a==='cancelImport'){importArmed=null;render();return;}
+  if(a==='armReset'){resetArmed='reset';render();return;}
+  if(a==='doReset'){data=sample();resetArmed=null;save();toast('Sample trip loaded');render();return;}
+  if(a==='armWipe'){resetArmed='wipe';render();return;}
+  if(a==='doWipe'){data=blank();resetArmed=null;save();toast('All data deleted from this phone');render();return;}
+});
+document.addEventListener('change',async e=>{
+  const el=e.target;
+  if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);render();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
+  if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;importArmed=f;render();}
+});
+document.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('form[data-form]');if(f)handleSubmit(f);});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('form[data-form] input:not([type=checkbox]):not([type=file])'))return;e.preventDefault();handleSubmit(e.target.closest('form[data-form]'));});
+function handleSubmit(form){
+  const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
+  if(kind==='profile'){data.profile.name=val('f-name');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
+  if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}data.zones.push({label:val('z-label')||zoneName(tz),tz});if(save())toast('Time zone added');render();return;}
+  if(kind==='allergies'){data.allergies={food:val('al-food'),medication:val('al-med')};if(save())toast('Allergies saved');render();return;}
+  if(kind==='group'){const l=val('g-link');if(l&&!/^https:\/\//.test(l)){document.getElementById('gerr').textContent='The link should start with https://';return;}data.group={name:val('g-name'),link:l};if(save())toast('Group saved');render();return;}
+  const F=FORMS[kind];if(!F)return;
+  const item=edit&&edit.id?data[kind].find(x=>x.id===edit.id):null;
+  const out=item?Object.assign({},item):{id:uid()};
+  for(const f of F.fields){const [k,label,type,req]=f;
+    if(type==='photo'){if(k in draftPhotos)out[k]=draftPhotos[k];else if(!item)out[k]='';continue;}
+    if(type==='check'){out[k]=document.getElementById('f-'+k).checked;continue;}
+    const v=val('f-'+k);
+    if(req&&!v){document.getElementById('formerr').textContent=label+' is needed.';document.getElementById('f-'+k).focus();return;}
+    if(type==='tz'&&v&&!validTz(v)){document.getElementById('formerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}
+    out[k]=v;}
+  if(item){data[kind]=data[kind].map(x=>x.id===item.id?out:x);}else data[kind].push(out);
+  edit=null;draftPhotos={};if(save())toast('Saved');render();window.scrollTo(0,0);
+}
+
+/* ---------- export / import ---------- */
+async function doExport(){
+  if(typeof JSZip==='undefined'){toast('The zip tool did not load. Check the internet connection and try again.');return;}
+  const zip=new JSZip();let n=0;
+  const copy=JSON.parse(JSON.stringify(data,(k,v)=>{if(typeof v==='string'&&v.startsWith('data:image/')){n++;const name='photos/photo-'+n+'.jpg';zip.file(name,v.split(',')[1],{base64:true});return name;}return v;}));
+  copy.exportedAt=new Date().toISOString();copy.app='Travel Companion '+BUILD;
+  zip.file('data.json',JSON.stringify(copy,null,2));
+  const blob=await zip.generateAsync({type:'blob'});
+  const fname='travel-companion-'+dateIn(DEVICE_TZ)+'.zip';
+  let dl=null;try{dl=await (window.claude&&window.claude.use?window.claude.use('downloads'):null);}catch(e){dl=null;}
+  if(!dl){try{const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=fname;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('Backup saved: '+fname);}catch(e){toast('Saving files is not available in this view.');}return;}
+  try{await dl.save({filename:fname,data:blob});toast('Backup saved: '+fname);}
+  catch(err){toast(err&&err.code==='declined'?'Export cancelled':'The backup could not be saved here.');}
+}
+async function doImport(){
+  const f=importArmed;if(!f)return;
+  if(typeof JSZip==='undefined'){toast('The zip tool did not load. Check the internet connection and try again.');return;}
+  try{
+    const zip=await JSZip.loadAsync(f);const j=zip.file('data.json');if(!j)throw new Error('nodata');
+    const parsed=JSON.parse(await j.async('string'));
+    const photos={};await Promise.all(Object.keys(zip.files).filter(p=>p.startsWith('photos/')&&!zip.files[p].dir).map(async p=>{photos[p]='data:image/jpeg;base64,'+await zip.file(p).async('base64');}));
+    const restored=JSON.parse(JSON.stringify(parsed),(k,v)=>typeof v==='string'&&photos[v]?photos[v]:v);
+    delete restored.exportedAt;delete restored.app;restored.sample=false;
+    data=normalize(restored);importArmed=null;save();toast('Trip imported');go('home');
+  }catch(err){importArmed=null;render();toast('This file is not a Travel Companion backup. Choose the .zip made by Export.');}
+}
+
+/* ---------- start ---------- */
+render();
+refreshWeather();
+setInterval(()=>refreshWeather(),30*60000);
+setInterval(()=>{if(route()==='home'&&!document.activeElement.matches('input,textarea,select'))render();},30000);
+})();
+</script>
+
+</body>
+</html>
