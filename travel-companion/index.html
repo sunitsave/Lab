@@ -165,12 +165,19 @@ function dur(ms){const m=Math.round(Math.abs(ms)/60000);const h=Math.floor(m/60)
 /* representative coordinates for common zones, used only for sunset times */
 const COORDS={'Asia/Kolkata':[19.08,72.88],'Asia/Calcutta':[19.08,72.88],'Asia/Dubai':[25.2,55.27],'Europe/Istanbul':[41.01,28.98],'Europe/London':[51.51,-0.13],'Europe/Paris':[48.86,2.35],'Europe/Berlin':[52.52,13.4],'Europe/Rome':[41.9,12.5],'Europe/Madrid':[40.42,-3.7],'Europe/Amsterdam':[52.37,4.9],'Europe/Zurich':[47.37,8.54],'Europe/Vienna':[48.21,16.37],'Europe/Prague':[50.08,14.44],'Europe/Athens':[37.98,23.73],'Europe/Moscow':[55.76,37.62],'Asia/Singapore':[1.35,103.82],'Asia/Bangkok':[13.76,100.5],'Asia/Kuala_Lumpur':[3.14,101.69],'Asia/Jakarta':[-6.2,106.85],'Asia/Hong_Kong':[22.32,114.17],'Asia/Shanghai':[31.23,121.47],'Asia/Tokyo':[35.68,139.69],'Asia/Seoul':[37.57,126.98],'Asia/Kathmandu':[27.72,85.32],'Asia/Colombo':[6.93,79.86],'Asia/Dhaka':[23.81,90.41],'Asia/Qatar':[25.29,51.53],'Asia/Riyadh':[24.71,46.68],'Asia/Muscat':[23.59,58.41],'Asia/Bahrain':[26.23,50.59],'Asia/Kuwait':[29.38,47.99],'Africa/Cairo':[30.04,31.24],'Africa/Nairobi':[-1.29,36.82],'Africa/Johannesburg':[-26.2,28.05],'Australia/Sydney':[-33.87,151.21],'Australia/Melbourne':[-37.81,144.96],'Pacific/Auckland':[-36.85,174.76],'America/New_York':[40.71,-74.01],'America/Chicago':[41.88,-87.63],'America/Denver':[39.74,-104.99],'America/Los_Angeles':[34.05,-118.24],'America/Toronto':[43.65,-79.38],'America/Vancouver':[49.28,-123.12],'America/Sao_Paulo':[-23.55,-46.63],'America/Mexico_City':[19.43,-99.13]};
 function sunTimes(date,lat,lon){const r=Math.PI/180;const n=Math.round(date.getTime()/86400000+2440587.5-2451545.0+0.0008-lon/360);const J=n+0.0008-lon/360;const M=(357.5291+0.98560028*J)%360;const C=1.9148*Math.sin(M*r)+0.02*Math.sin(2*M*r)+0.0003*Math.sin(3*M*r);const L=(M+C+180+102.9372)%360;const Jt=2451545+J+0.0053*Math.sin(M*r)-0.0069*Math.sin(2*L*r);const dec=Math.asin(Math.sin(L*r)*Math.sin(23.44*r));const cw=(Math.sin(-0.833*r)-Math.sin(lat*r)*Math.sin(dec))/(Math.cos(lat*r)*Math.cos(dec));if(cw<-1||cw>1)return null;const w=Math.acos(cw)/r;const toD=x=>new Date((x-2440587.5)*86400000);return {rise:toD(Jt-w/360),set:toD(Jt+w/360)};}
-function dayInfo(tz,now){const c=COORDS[tz];if(c){let s=sunTimes(now,c[0],c[1]);if(s){if(now<s.rise){return {day:false,rise:s.rise};}if(now<s.set){return {day:true,set:s.set};}const t=sunTimes(new Date(now.getTime()+86400000),c[0],c[1]);return {day:false,rise:t&&t.rise};}}const h=hourIn(tz,now);return {day:h>=6&&h<18,approx:true};}
+function dayInfo(tz,now,ll){const c=ll||COORDS[tz];if(c){let s=sunTimes(now,c[0],c[1]);if(s){if(now<s.rise){return {day:false,rise:s.rise};}if(now<s.set){return {day:true,set:s.set};}const t=sunTimes(new Date(now.getTime()+86400000),c[0],c[1]);return {day:false,rise:t&&t.rise};}}const h=hourIn(tz,now);return {day:h>=6&&h<18,approx:true};}
 
 
 /* ---------- live data: GPS + weather alerts (work when hosted on https; blocked inside the Claude preview) ---------- */
-const live={pos:null,posErr:null,posAt:0,wx:null,wxErr:null,wxAt:0,wxBusy:false};
+const live={place:null,placeFor:null,pos:null,posErr:null,posAt:0,wx:null,wxErr:null,wxAt:0,wxBusy:false};
 function getPos(){return new Promise((res,rej)=>{if(!('geolocation' in navigator)){rej(new Error('nogeo'));return;}navigator.geolocation.getCurrentPosition(p=>{live.pos={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};live.posAt=Date.now();live.posErr=null;res(live.pos);},e=>{live.posErr=e&&e.code===1?'denied':'unavailable';rej(e);},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});});}
+/* place name for the GPS position (free reverse-geocoding service; no key needed) */
+async function placeName(lat,lon){
+  const key=lat.toFixed(2)+','+lon.toFixed(2);if(live.placeFor===key)return live.place;
+  try{const r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=en');if(!r.ok)throw 0;const j=await r.json();
+    const name=[j.locality||j.city,j.principalSubdivision,j.countryName].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).slice(0,2).join(', ');
+    live.place=name||null;live.placeFor=key;return live.place;}catch(e){return null;}
+}
 const WMO={95:'Thunderstorm',96:'Thunderstorm with hail',99:'Severe thunderstorm with hail',65:'Heavy rain',67:'Heavy freezing rain',75:'Heavy snow',82:'Violent rain showers',86:'Heavy snow showers',57:'Freezing drizzle',45:'Fog',48:'Freezing fog'};
 function deriveAlerts(j){
   const h=j.hourly||{};const times=h.time||[];const out=[];const seen={};
@@ -192,10 +199,10 @@ function deriveAlerts(j){
 async function refreshWeather(force){
   if(live.wxBusy)return;if(!force&&live.wxAt&&Date.now()-live.wxAt<30*60000)return;
   live.wxBusy=true;
-  let lat,lon,src;
-  try{const p=await getPos();lat=p.lat;lon=p.lon;src='your location';}
-  catch(e){const c=COORDS[DEVICE_TZ];if(c){lat=c[0];lon=c[1];src=zoneName(DEVICE_TZ);}}
-  if(lat==null){live.wxErr='noloc';live.wxBusy=false;live.wxAt=Date.now();if(route()==='home')render();return;}
+  let lat,lon;
+  try{const p=await getPos();lat=p.lat;lon=p.lon;}
+  catch(e){live.wxErr=live.posErr==='denied'?'denied':'noloc';live.wxBusy=false;live.wxAt=Date.now();if(route()==='home')render();return;}
+  const place=await placeName(lat,lon);const src=place||'your location';
   try{
     const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(3)+'&longitude='+lon.toFixed(3)+'&current=temperature_2m,weather_code&hourly=temperature_2m,precipitation,weather_code,wind_gusts_10m,uv_index&forecast_hours=12&timezone=auto';
     const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('http');
@@ -216,7 +223,8 @@ function weatherBlock(){
     if(navigator.onLine===false)return '<div class="muted">No internet connection. Weather alerts will appear when the phone is back online.</div>';
     return '<div class="row" style="gap:10px"><span class="muted grow">Weather alerts are not available right now.</span><button class="btn" style="min-height:48px" data-act="wxRetry">Try again</button></div>';
   }
-  if(live.wxErr==='noloc')return IN_FRAME?'':'<div class="muted">Allow location for this app to see weather alerts for where you are.</div>';
+  if(live.wxErr==='denied')return IN_FRAME?'':'<div class="warn">'+ic('pin')+'<span>Weather alerts use your phone location. Location is blocked for this app: tap the lock icon next to the web address, allow Location, then tap Try again.<br><button class="btn" style="min-height:48px;margin-top:8px" data-act="wxRetry">Try again</button></span></div>';
+  if(live.wxErr==='noloc')return IN_FRAME?'':'<div class="row" style="gap:10px"><span class="muted grow">Turn on Location on the phone to see weather alerts for where you are.</span><button class="btn" style="min-height:48px" data-act="wxRetry">Try again</button></div>';
   return IN_FRAME?'':'<div class="muted">Checking weather alerts…</div>';
 }
 const IS_ANDROID=/Android/i.test(navigator.userAgent||'');
@@ -298,12 +306,12 @@ function homeView(){
   if(!storageOk){h+='<div class="warn">'+ic('alert')+'<span>This phone is not keeping your changes. Export a backup from Configuration before closing.</span></div>';}
 
   /* Time */
-  const di=dayInfo(DEVICE_TZ,now);
+  const di=dayInfo(DEVICE_TZ,now,live.pos?[live.pos.lat,live.pos.lon]:null);
   let dl='';
   if(di.day&&di.set){dl='Daylight until <b>'+fmtTime(DEVICE_TZ,di.set)+'</b> · '+dur(di.set-now)+' left';}
   else if(!di.day&&di.rise){dl='Night now · sunrise at <b>'+fmtTime(DEVICE_TZ,di.rise)+'</b>';}
   else{dl=di.day?'Daytime':'Night time';}
-  h+='<section class="sec"><h2>'+ic('clock')+'Time</h2><div class="card strong"><div class="row"><span role="img" aria-label="'+(di.day?'Day':'Night')+'">'+ic(di.day?'sun':'moon',32,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(zoneName(DEVICE_TZ))+'</b><br><span class="muted">'+(di.day?'Day':'Night')+'</span></span><span class="big">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
+  h+='<section class="sec"><h2>'+ic('clock')+'Time</h2><div class="card strong"><div class="row"><span role="img" aria-label="'+(di.day?'Day':'Night')+'">'+ic(di.day?'sun':'moon',32,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b><br><span class="muted">'+(di.day?'Day':'Night')+'</span></span><span class="big">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
      '<div class="note" style="flex-direction:row;align-items:center;gap:10px">'+ic('sunset',24,'sun')+'<span>'+dl+'</span></div>'+
      weatherBlock()+'</div>';
   const istDay=dayInfo('Asia/Kolkata',now).day;
