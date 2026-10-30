@@ -38,7 +38,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .hello{flex:1;min-width:0;display:flex;flex-direction:column}
 .hello small{font-size:16px;color:var(--muted)}
 .hello b{font-size:25px;line-height:1.1;overflow-wrap:anywhere}
-.avatar{width:60px;height:60px;border-radius:50%;border:2px solid var(--ink);background:var(--chip);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.avatar{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:var(--chip);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 main{display:flex;flex-direction:column;gap:16px;padding-top:18px}
 h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .card{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -52,7 +52,7 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .warn{background:var(--warn-bg);color:var(--warn-ink);border:2px solid var(--warn-line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .zone{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.zone .t{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.zone .t{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
 .btn{min-height:56px;border-radius:12px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;text-decoration:none;cursor:pointer;text-align:center}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.danger{border-color:var(--warn-line);color:var(--warn-ink);background:var(--warn-bg)}
@@ -63,10 +63,21 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .badge{min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--chip);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .sugs{display:flex;flex-direction:column;gap:6px}
 .sugs button{min-height:52px;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:16px;cursor:pointer}
-.wxrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.temp{min-height:56px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 10px;color:var(--ink);cursor:pointer}
+.wxrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
+.temp{min-height:56px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 12px;color:var(--ink);cursor:pointer;white-space:nowrap}
 .ferr{margin:0;color:var(--warn-ink);background:var(--warn-bg);border:2px solid var(--warn-line);border-radius:10px;padding:10px 12px;font-weight:700}
 .ferr:empty{display:none}
+.avbtn{padding:0;border:0;background:none;border-radius:50%;cursor:pointer;flex-shrink:0}
+.overlay{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--bg);color:var(--ink);border-radius:20px;padding:20px;width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.sheet .bigav{width:180px;height:180px;border-radius:50%;object-fit:cover;border:3px solid var(--ink);background:var(--chip);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.sheet .btn{width:100%;box-sizing:border-box}
+.sechead{scroll-margin-top:92px}
+.summary{margin-top:8px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.summary b{color:var(--ink)}
+.seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.seg button{min-height:56px;border-radius:12px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);font-size:18px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .empty{min-height:64px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;border:2px dashed var(--muted);color:var(--muted);text-decoration:none}
 .empty b{color:var(--ink);font-size:17px;display:block}
 .tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);color:var(--ink);text-decoration:none;min-width:0}
@@ -177,7 +188,7 @@ function dayInfo(tz,now,ll){const c=ll||COORDS[tz]||[20,tzOffsetMin(tz,now)/4];i
 
 /* ---------- live data: GPS + weather alerts (work when hosted on https; blocked inside the Claude preview) ---------- */
 const live={place:null,placeFor:null,pos:null,posErr:null,posAt:0,wx:null,wxErr:null,wxAt:0,wxBusy:false};
-function getPos(){return new Promise((res,rej)=>{if(!('geolocation' in navigator)){rej(new Error('nogeo'));return;}navigator.geolocation.getCurrentPosition(p=>{live.pos={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};live.posAt=Date.now();live.posErr=null;res(live.pos);},e=>{live.posErr=e&&e.code===1?'denied':'unavailable';rej(e);},{enableHighAccuracy:true,timeout:12000,maximumAge:60000});});}
+function getPos(fresh){return new Promise((res,rej)=>{if(!('geolocation' in navigator)){rej(new Error('nogeo'));return;}navigator.geolocation.getCurrentPosition(p=>{live.pos={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};live.posAt=Date.now();live.posErr=null;res(live.pos);},e=>{live.posErr=e&&e.code===1?'denied':'unavailable';rej(e);},{enableHighAccuracy:true,timeout:12000,maximumAge:fresh?0:60000});});}
 /* place name for the GPS position (free reverse-geocoding service; no key needed) */
 async function placeName(lat,lon){
   const key=lat.toFixed(2)+','+lon.toFixed(2);if(live.placeFor===key)return live.place;
@@ -218,12 +229,14 @@ async function refreshWeather(force){
   }catch(e){live.wxErr='offline';}
   live.wxAt=Date.now();live.wxBusy=false;if(route()==='home')render();
 }
+function fmtTemp(c){const f=data.settings&&data.settings.temp==='F';return Math.round(f?c*9/5+32:c)+'°'+(f?'F':'C');}
 function gWeather(place){return 'https://www.google.com/search?q='+enc('weather '+(place||''));}
+function zoneWx(place){return '<a class="btn" style="min-height:44px;font-size:15px;padding:0 8px;border-width:1px" href="https://www.google.com/search?q='+enc('weather forecast '+place)+(data.settings.temp==='F'?'+fahrenheit':'')+'" target="_blank" rel="noopener" aria-label="Check weather forecast for '+esc(place)+'">Check weather</a>';}
 function wxButton(place,small){return '<a class="btn" style="'+(small?'min-height:48px;font-size:16px;padding:0 8px':'')+'" href="'+gWeather(place)+'" target="_blank" rel="noopener" aria-label="Weather alerts'+(place?' for '+esc(place):'')+' on Google">'+ic('alert',small?20:22)+(small?'Weather':'Weather alerts')+'</a>';}
 function weatherBlock(){
   const place=live.wx&&live.wx.src!=='your location'?live.wx.src:(live.place||'');
   let temp='';
-  if(live.wx&&live.wx.temp!=null)temp='<span class="temp" role="img" aria-label="Temperature now '+Math.round(live.wx.temp)+' degrees">'+ic('cloud',24)+Math.round(live.wx.temp)+'°C</span>';
+  if(live.wx&&live.wx.temp!=null)temp='<span class="temp" role="img" aria-label="Temperature now '+fmtTemp(live.wx.temp)+'">'+ic('cloud',22)+fmtTemp(live.wx.temp)+'</span>';
   else if(!IN_FRAME&&(live.wxErr==='denied'||live.wxErr==='noloc'||live.wxErr==='offline'))temp='<button class="temp" style="font-size:16px" data-act="wxRetry">'+ic('pin',20)+'Show temperature</button>';
   else if(!IN_FRAME)temp='<span class="temp" style="font-size:16px;color:var(--muted)">…</span>';
   return temp?'<div class="wxrow">'+temp+wxButton(place)+'</div>':wxButton(place);
@@ -231,6 +244,22 @@ function weatherBlock(){
 const IS_ANDROID=/Android/i.test(navigator.userAgent||'');
 const IN_FRAME=(()=>{try{return window.top!==window.self;}catch(e){return true;}})();
 const TRANSLATE_HREF=IS_ANDROID&&!IN_FRAME?'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.apps.translate;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.google.android.apps.translate;end':'https://translate.google.com';
+
+/* ---------- location-first buttons ---------- */
+function openOut(url,t0){if(IN_FRAME){const l=document.createElement('a');l.href=url;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return;}if(Date.now()-t0<4500){let w=null;try{w=window.open(url,'_blank');}catch(e){}if(w){try{w.opener=null;}catch(e){}return;}} try{location.href=url;}catch(e){}}
+async function locGo(to){
+  const t0=Date.now();live.locBusy=to;live.posErr=null;render();
+  let pos=null;try{pos=await getPos(true);}catch(e){}
+  live.locBusy=false;render();
+  if(pos){refreshWeather(true);
+    const ll=pos.lat.toFixed(5)+','+pos.lon.toFixed(5);
+    if(to==='share'){const msg=(data.profile.name?data.profile.name+' – ':'')+'My current location: https://maps.google.com/?q='+ll;openOut('https://wa.me/?text='+enc(msg),t0);}
+    else openOut('https://www.google.com/maps/search/'+(to==='police'?'police+station':'hospital')+'/@'+pos.lat+','+pos.lon+',15z',t0);
+    return;}
+  if(to==='share'){toast('Your location could not be found, so nothing was shared. Allow location and try again.');return;}
+  toast('Location not found. Opening Google Maps, which will use its own location.');
+  openOut('https://www.google.com/maps/search/'+(to==='police'?'police+station+near+me':'hospital+near+me'),t0);
+}
 
 /* ---------- address search: Google Places when a key is set, else OpenStreetMap ---------- */
 const GOOGLE_MAPS_KEY='';  /* paste a Google Maps Platform key (Places API New) here to search Google Maps */
@@ -258,8 +287,8 @@ function uid(){return Math.random().toString(36).slice(2,9);}
 function sample(){
   const t=dateIn(DEVICE_TZ);
   const h1=uid(),h2=uid();
-  return {sample:true,
-    profile:{name:'Asha Mehta',photo:''},
+  return {sample:true,settings:{temp:'C',dist:'km'},
+    profile:{name:'Asha Mehta',photo:'',nationality:'Indian'},
     zones:[{label:'India',tz:'Asia/Kolkata',home:true},{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
     contacts:[{id:uid(),name:'Rahul Mehta',relation:'Son',phone:'+91 98200 12345',whatsapp:true},{id:uid(),name:'Tour manager – Priya',relation:'Tour manager',phone:'+971 50 123 4567',whatsapp:true}],
     group:{name:'Dubai–Turkey Seniors Tour',link:'https://chat.whatsapp.com/'},
@@ -274,8 +303,8 @@ function sample(){
     flights:[{id:uid(),date:t,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'Dubai International Airport Terminal 3',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
   };
 }
-function blank(){return {sample:false,profile:{name:'',photo:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
-function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:''},d.profile||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});if(d.sample&&!d.zones.some(z=>z.home)){const k=d.zones.find(z=>z.tz==='Asia/Kolkata');if(k)k.home=true;else d.zones.unshift({label:'India',tz:'Asia/Kolkata',home:true});}return d;}
+function blank(){return {sample:false,settings:{temp:'C',dist:'km'},profile:{name:'',photo:'',nationality:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
+function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:'',nationality:''},d.profile||{});d.settings=Object.assign({temp:'C',dist:'km'},d.settings||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});if(d.sample&&!d.zones.some(z=>z.home)){const k=d.zones.find(z=>z.tz==='Asia/Kolkata');if(k)k.home=true;else d.zones.unshift({label:'India',tz:'Asia/Kolkata',home:true});}return d;}
 let data;
 let storageOk=true;
 try{const raw=localStorage.getItem(KEY);data=raw?normalize(JSON.parse(raw)):sample();}catch(e){storageOk=false;data=sample();}
@@ -283,7 +312,8 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(data));storageOk=tru
 
 /* ---------- UI state ---------- */
 const open={};             // collapsed sections on home
-let tourOpen=false;         // guided tour group in menu
+let tourOpen=false;
+let profileOpen=false;         // guided tour group in menu
 let edit=null;             // {kind, id|null}
 let draftPhotos={};
 let pendingDelete=null;
@@ -293,11 +323,11 @@ let resetArmed=null;
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,3500);}
 
-const PARENT={menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
+const PARENT={units:'config',menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
 function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
-function resetUi(){edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
+function resetUi(){profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
 function go(r,fromHistory){r=valid(r);if(r==='menu')tourOpen=false;const changed=r!==cur;cur=r;resetUi();
   if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
   render();try{window.scrollTo(0,0);}catch(e){}}
@@ -323,30 +353,30 @@ function homeView(){
   const hr=hourIn(DEVICE_TZ,now);
   const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
   const p=data.profile;
-  let h='<div class="top"><a class="iconbtn" href="#menu" aria-label="Open menu">'+ic('menu',28)+'</a><div class="hello"><small>'+greet+'</small><b>'+esc(p.name||'Traveller')+'</b></div>'+(p.photo?'<img class="avatar" alt="" src="'+esc(p.photo)+'">':'<div class="avatar">'+ic('user',28)+'</div>')+'</div><main>';
+  const missing=[], notToday=[];
+  let h='<div class="top"><a class="iconbtn" href="#menu" aria-label="Open menu">'+ic('menu',28)+'</a><div class="hello"><small>'+greet+'</small><b>'+esc(p.name||'Traveller')+'</b></div><button type="button" class="avbtn" data-act="openProfile" aria-label="Show my profile">'+(p.photo?'<img class="avatar" alt="" src="'+esc(p.photo)+'">':'<span class="avatar">'+ic('user',24)+'</span>')+'</button></div><main>';
   if(data.sample){h+='<div class="banner"><b>This is a sample trip for testing.</b><span>Change it in Configuration, or start with an empty trip.</span>'+(resetArmed==='sample'?'<button class="btn danger" data-act="clearSample">Tap again to clear the sample</button>':'<button class="btn" data-act="armClearSample">Start with an empty trip</button>')+'</div>';}
   if(!storageOk){h+='<div class="warn">'+ic('alert')+'<span>This phone is not keeping your changes. Export a backup from Configuration before closing.</span></div>';}
 
   /* Time */
   const di=dayInfo(DEVICE_TZ,now,live.pos?[live.pos.lat,live.pos.lon]:null);
   let dl='';
-  if(di.day&&di.set){dl='Daylight until <b>'+fmtTime(DEVICE_TZ,di.set)+'</b> · '+dur(di.set-now)+' left';}
-  else if(!di.day&&di.rise){dl='Night now · sunrise at <b>'+fmtTime(DEVICE_TZ,di.rise)+'</b>';}
-  else{dl=di.day?'Daytime':'Night time';}
-  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+(di.day?'Day':'Night')+'">'+ic(di.day?'sun':'moon',32,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b><br><span class="muted">'+(di.day?'Day':'Night')+'</span></span><span class="big">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
-     '<div class="note" style="flex-direction:row;align-items:center;gap:10px">'+ic('sunset',24,'sun')+'<span>'+dl+'</span></div>'+
+  if(di.day&&di.set){dl='Daylight until '+fmtTime(DEVICE_TZ,di.set)+' · '+dur(di.set-now)+' left';}
+  else if(!di.day&&di.rise){dl='Sunrise at '+fmtTime(DEVICE_TZ,di.rise);}
+  const dn=di.day?'Day':'Night';
+  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+'</span><span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
      weatherBlock()+'</div>';
   const hz=data.zones.find(z=>z.home&&validTz(z.tz));
-  if(hz){const hd=zoneDay(hz,now);
-    h+='<div class="card" style="gap:10px"><div class="row"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',30,hd?'sun':'moon')+'</span><span class="grow"><span class="label">Home</span><br><b>'+esc(hz.label||zoneName(hz.tz))+'</b> <span class="muted">· '+(hd?'Day':'Night')+'</span></span><span class="big" style="font-size:28px">'+fmtTime(hz.tz,now)+'</span></div>'+wxButton(hz.label||zoneName(hz.tz),true)+'</div>';}
+  if(hz){const hd=zoneDay(hz,now);const hn=hz.label||zoneName(hz.tz);
+    h+='<div class="card" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span><span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span><span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
   h+='</section>';
 
   /* Other zones */
   const zs=data.zones.filter(z=>validTz(z.tz)&&!z.home);
   if(zs.length){
-    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span><span class="muted">'+(d?'Day':'Night')+'</span></div><b style="overflow-wrap:anywhere">'+esc(z.label||zoneName(z.tz))+'</b><span class="t">'+fmtTime(z.tz,now)+'</span>'+wxButton(z.label||zoneName(z.tz),true)+'</div>'}).join('')+'</div>';
+    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);const n=z.label||zoneName(z.tz);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span><span class="t">'+fmtTime(z.tz,now)+'</span></div><b style="overflow-wrap:anywhere">'+esc(n)+'</b>'+zoneWx(n)+'</div>'}).join('')+'</div>';
     h+=section('zones','globe','Other time zones',esc(zs.map(z=>z.label||zoneName(z.tz)).join(' · ')),zs.length,body);
-  }
+  } else missing.push('Other time zones');
 
   /* Contacts */
   if(data.contacts.length){
@@ -358,6 +388,7 @@ function homeView(){
   const g=data.group;
   const trTile='<a class="tile" href="'+TRANSLATE_HREF+'" target="_blank" rel="noopener">'+ic('translate')+'<b>Google Translate</b><span>Opens the app · tap the mic to speak</span></a>';
   h+=g.link?'<div class="grid2"><a class="tile" href="'+esc(g.link)+'" target="_blank" rel="noopener">'+ic('group')+'<b>Tour WhatsApp group</b><span>'+esc(g.name||'Opens WhatsApp')+'</span></a>'+trTile+'</div>':trTile;
+  if(!g.link)missing.push('Tour WhatsApp group');
 
   /* Medication */
   const al=[data.allergies.food,data.allergies.medication].filter(x=>x&&x.trim());
@@ -368,37 +399,27 @@ function homeView(){
     if(al.length){body+='<span class="label">Allergies</span>'+(data.allergies.food?'<div class="warn"><span><b>Food</b><br>'+esc(data.allergies.food)+'</span></div>':'')+(data.allergies.medication?'<div class="warn"><span><b>Medication</b><br>'+esc(data.allergies.medication)+'</span></div>':'');}
     body+='</div>';
     h+=section('meds','pill','Critical medication',data.meds.length+' medicine'+(data.meds.length===1?'':'s')+' · '+al.length+' allerg'+(al.length===1?'y':'ies'),mc,body);
-  }
+  } else missing.push('Critical medication');
 
   /* Today */
-  if(tday){
-    h+=section('itin','cal',"Today's itinerary",esc(tday.place),1,dayCard(tday,true));
-  }
+  if(tday){h+=section('itin','cal',"Today's itinerary",esc(tday.place),1,dayCard(tday,true));}
+  else notToday.push(data.days.length?"Today's itinerary (nothing planned for today)":"Itinerary (no days added)");
 
   /* Location */
-  let locInner;
-  if(live.pos){
-    const ll=live.pos.lat.toFixed(5)+','+live.pos.lon.toFixed(5);
-    const mapUrl='https://maps.google.com/?q='+ll;
-    const msg=(data.profile.name?data.profile.name+' – ':'')+'My current location: '+mapUrl;
-    locInner='<div class="note"><span class="label">Current location</span><b style="font-variant-numeric:tabular-nums">'+ll+'</b><span class="muted">Accurate to about '+live.pos.acc+' m · found at '+fmtTime(DEVICE_TZ,new Date(live.posAt))+'</span><a href="'+mapUrl+'" target="_blank" rel="noopener" style="font-weight:700;min-height:44px;display:flex;align-items:center">Show on Google Maps</a></div>'+
-      '<a class="btn primary" href="https://wa.me/?text='+enc(msg)+'" target="_blank" rel="noopener">'+ic('chat',22)+'Share location on WhatsApp</a>'+
-      '<p class="muted" style="margin:0">WhatsApp opens with your location link ready. Pick a person or the tour group and tap Send.</p>'+
-      '<button class="btn" data-act="locate">'+ic('pin',22)+'Update my location</button>';
-  } else {
-    locInner='<button class="btn primary" data-act="locate">'+ic('pin',22)+(live.locBusy?'Finding your location…':'Find my location to share')+'</button>'+
-      (live.posErr==='denied'?'<div class="warn">'+ic('alert')+'<span>Location is blocked for this app. Allow location in the browser settings, then try again.</span></div>':'')+
-      (live.posErr==='unavailable'?'<div class="warn">'+ic('alert')+'<span>Your location could not be found here. Turn on Location on the phone and try again.</span></div>':'');
-  }
-  const locBody='<div class="card">'+locInner+
-    '<div class="grid2"><a class="btn" style="min-height:72px;flex-direction:column;gap:4px" href="'+(live.pos?'https://www.google.com/maps/search/police+station/@'+live.pos.lat+','+live.pos.lon+',15z':'https://www.google.com/maps/search/police+station+near+me')+'" target="_blank" rel="noopener">'+ic('shield',22)+'Police nearby</a><a class="btn" style="min-height:72px;flex-direction:column;gap:4px" href="'+(live.pos?'https://www.google.com/maps/search/hospital/@'+live.pos.lat+','+live.pos.lon+',15z':'https://www.google.com/maps/search/hospital+near+me')+'" target="_blank" rel="noopener">'+ic('cross',22)+'Hospital nearby</a></div></div>';
+  const busy=live.locBusy;
+  const locBody='<div class="card">'+
+    '<button class="btn primary" data-act="locGo" data-to="share"'+(busy?' disabled':'')+'>'+ic('chat',22)+(busy==='share'?'Finding your location…':'Share my location on WhatsApp')+'</button>'+
+    '<div class="grid2"><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="police"'+(busy?' disabled':'')+'>'+ic('shield',22)+(busy==='police'?'Finding…':'Police nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="hospital"'+(busy?' disabled':'')+'>'+ic('cross',22)+(busy==='hospital'?'Finding…':'Hospital nearby')+'</button></div>'+
+    (live.posErr==='denied'?'<div class="warn">'+ic('alert')+'<span>Location is blocked for this app. Tap the lock icon next to the web address and allow Location.</span></div>':'')+
+    (live.posErr==='unavailable'?'<div class="warn">'+ic('alert')+'<span>Your location could not be found. Turn on Location on the phone and try again.</span></div>':'')+
+    '<p class="muted" style="margin:0;font-size:15px">Each button finds where you are right now first.</p></div>';
   h+=section('loc','pin','Where I am now','Share location · Police · Hospital',3,locBody);
 
   /* Tomorrow */
   if(nday){
     const changed=tday&&nday.hotelId&&tday.hotelId!==nday.hotelId;
     h+=section('tom','calnext','Tomorrow',esc(nday.place)+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),1,dayCard(nday,false,changed));
-  }
+  } else if(data.days.length) notToday.push('Tomorrow (nothing planned)');
 
   /* Flight */
   const fl=data.flights.filter(f=>f.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
@@ -406,9 +427,21 @@ function homeView(){
     const f0=fl[0];const dep=zonedToDate(f0.date,f0.time,validTz(f0.tz)?f0.tz:DEVICE_TZ);
     const sub=esc(f0.number)+(dep?(dep>now?' · leaves in '+dur(dep-now):' · departed'):'');
     h+=section('flight','plane',"Today's flight",sub,fl.length,'<div style="display:flex;flex-direction:column;gap:12px">'+fl.map(f=>flightCard(f,now)).join('')+'</div>');
-  }
+  } else notToday.push("Today's flight (no flight today)");
+
+  /* Summary */
+  const lines=[];
+  if(!data.contacts.length)lines.push('<span><b>No emergency contact set.</b> Family can add one in Configuration.</span>');
+  if(notToday.length)lines.push('<span><b>Not shown today:</b> '+notToday.map(esc).join(' · ')+'</span>');
+  if(missing.length)lines.push('<span><b>Not set up:</b> '+missing.map(esc).join(' · ')+'</span>');
+  if(lines.length)h+='<div class="summary" role="note">'+lines.join('')+'</div>';
 
   h+='</main>';
+  if(profileOpen){
+    h+='<div class="overlay" data-act="closeProfile"><div class="sheet" role="dialog" aria-modal="true" aria-label="My profile">'+(p.photo?'<img class="bigav" alt="" src="'+esc(p.photo)+'">':'<span class="bigav">'+ic('user',72)+'</span>')+
+      '<b style="font-size:26px">'+esc(p.name||'Traveller')+'</b>'+(p.nationality?'<span style="font-size:18px">Nationality: <b>'+esc(p.nationality)+'</b></span>':'<span class="muted">Nationality not set</span>')+
+      '<a class="btn primary" href="#profile">'+ic('edit',22)+'Edit profile</a><button type="button" class="btn" data-act="closeProfile">Close</button></div></div>';
+  }
   return h;
 }
 function dayCard(d,isToday,hotelChanged){
@@ -471,7 +504,7 @@ function itineraryView(){
 function configView(){
   const row=(r,i,t,s)=>'<a class="navitem" href="#'+r+'">'+ic(i,28)+'<span class="grow"><span class="t">'+t+'</span><span class="s">'+s+'</span></span>'+ic('chev',22)+'</a>';
   return top('Configuration','menu')+'<main><nav class="navlist" aria-label="Configuration">'+
-   '<div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name and photo')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+
+   '<div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name, photo, nationality')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+row('units','sliders','Units','Temperature '+(data.settings.temp==='F'?'°F':'°C')+' · distance '+(data.settings.dist==='mi'?'miles':'kilometres'))+
    '<div class="grouplabel">TRIP</div>'+row('days','cal','Itinerary days',data.days.length+' days · tickets, clothes, accessories')+row('hotels','bed','Hotels',data.hotels.length+' hotels')+row('flights','plane','Flights',data.flights.length+' flights')+
    '<div class="grouplabel">SAFETY</div>'+row('meds','pill','Critical medication',data.meds.length+' medicines · allergies')+row('contacts','phone','Emergency contacts',data.contacts.length+' contacts')+row('group','group','Tour WhatsApp group',data.group.link?'Link added':'No link yet')+
    '<div class="grouplabel">BACKUP</div>'+row('backup','dl','Export / Import','Save or load a .zip with data and photos')+
@@ -534,8 +567,12 @@ function profileView(){
   const p=data.profile;const cur='photo' in draftPhotos?draftPhotos.photo:p.photo;
   let h=top('Profile','config')+'<main><form data-form="profile" class="card"><span class="label">My profile</span><div class="row">'+(cur?'<img class="avatar" style="width:88px;height:88px" alt="" src="'+esc(cur)+'">':'<div class="avatar" style="width:88px;height:88px">'+ic('user',36)+'</div>')+
    '<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="f-photo">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="f-photo" data-photo="photo" hidden>'+(cur?'<button type="button" class="btn" data-act="rmPhoto" data-key="photo">Remove photo</button>':'')+'</span></div>'+
-   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
+   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<input id="f-nat" value="'+esc(p.nationality)+'" placeholder="e.g. Indian"></label><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
   return h;
+}
+function unitsView(){
+  const seg=(k,opts)=>'<div class="seg" role="group">'+opts.map(([v,l])=>'<button type="button" data-act="setUnit" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(data.settings[k]===v)+'">'+l+'</button>').join('')+'</div>';
+  return top('Units','config')+'<main><div class="card"><span class="label">Temperature</span>'+seg('temp',[['C','Celsius °C'],['F','Fahrenheit °F']])+'</div><div class="card"><span class="label">Distance</span>'+seg('dist',[['km','Kilometres'],['mi','Miles']])+'</div><p class="muted" style="margin:0">Changes save as soon as you tap.</p></main>';
 }
 function zonesView(){
   let h=top('Time zones','config')+'<main><div class="card"><span class="label">Time zones on home screen</span><p class="muted" style="margin:0">Local time always shows. Tap Set as home on one zone to show it under local time. Use the arrows to set the order of the others.</p>';
@@ -592,6 +629,7 @@ function render(){
   else if(r==='config')h=configView();
   else if(r==='profile')h=profileView();
   else if(r==='zones')h=zonesView();
+  else if(r==='units')h=unitsView();
   else if(r==='group')h=groupView();
   else if(r==='backup')h=backupView();
   else if(r==='tour')h=tourView();
@@ -612,7 +650,11 @@ function shrink(file){return new Promise((res,rej)=>{const fr=new FileReader();f
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
-  if(a==='toggle'){open[b.dataset.key]=!open[b.dataset.key];render();return;}
+  if(a==='toggle'){const k=b.dataset.key;open[k]=!open[k];render();const hb=document.querySelector('[data-act=toggle][data-key="'+k+'"]');if(hb){try{hb.focus({preventScroll:true});}catch(x){}try{hb.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}catch(x){hb.scrollIntoView();}}return;}
+  if(a==='openProfile'){profileOpen=true;render();const c=document.querySelector('.sheet .btn');if(c)c.focus();return;}
+  if(a==='closeProfile'){if(e.target.closest('.sheet')&&b.classList.contains('overlay'))return;profileOpen=false;render();return;}
+  if(a==='setUnit'){data.settings[b.dataset.k]=b.dataset.v;if(save())toast('Saved');render();return;}
+  if(a==='locGo'){locGo(b.dataset.to);return;}
   if(a==='locate'){live.locBusy=true;live.posErr=null;render();getPos().then(()=>{live.locBusy=false;toast('Location found');render();refreshWeather(true);}).catch(()=>{live.locBusy=false;render();});return;}
   if(a==='tourToggle'){tourOpen=!tourOpen;render();return;}
   if(a==='armClearSample'){resetArmed='sample';render();return;}
@@ -646,10 +688,11 @@ document.addEventListener('change',async e=>{
   if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;importArmed=f;render();}
 });
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('form[data-form]');if(f)handleSubmit(f);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&profileOpen){profileOpen=false;render();return;}});
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('form[data-form] input:not([type=checkbox]):not([type=file])'))return;e.preventDefault();handleSubmit(e.target.closest('form[data-form]'));});
 function handleSubmit(form){
   const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
-  if(kind==='profile'){data.profile.name=val('f-name');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
+  if(kind==='profile'){data.profile.name=val('f-name');data.profile.nationality=val('f-nat');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
   if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}const nz={label:val('z-label')||zoneName(tz),tz};if(document.getElementById('z-home').checked){data.zones.forEach(z=>z.home=false);nz.home=true;}data.zones.push(nz);if(save())toast('Time zone added');render();geocode(nz.label).then(c=>{if(c){nz.lat=c[0];nz.lon=c[1];save();render();}});return;}
   if(kind==='allergies'){data.allergies={food:val('al-food'),medication:val('al-med')};if(save())toast('Allergies saved');render();return;}
   if(kind==='group'){const l=val('g-link');if(l&&!/^https:\/\//.test(l)){document.getElementById('gerr').textContent='The link should start with https://';return;}data.group={name:val('g-name'),link:l};if(save())toast('Group saved');render();return;}
