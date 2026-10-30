@@ -369,7 +369,7 @@ function homeView(){
   if(di.day&&di.set){dl='Daylight until '+fmtTime(DEVICE_TZ,di.set)+' · '+dur(di.set-now)+' left';}
   else if(!di.day&&di.rise){dl='Sunrise at '+fmtTime(DEVICE_TZ,di.rise);}
   const dn=di.day?'Day':'Night';
-  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Location is off. Turn on Location to see temperature and weather alerts.</span>':'')+'</span><span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
+  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Turn on Location to see temperature and weather alerts</span>':'')+'</span><span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
      weatherBlock()+'</div>';
   const hz=data.zones.find(z=>z.home&&validTz(z.tz));
   if(hz){const hd=zoneDay(hz,now);const hn=hz.label||zoneName(hz.tz);
