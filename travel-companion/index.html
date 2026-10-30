@@ -61,6 +61,12 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .sechead .t{font-size:21px;font-weight:700;display:block}
 .sechead .s{font-size:15px;color:var(--muted);display:block;overflow-wrap:anywhere}
 .badge{min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--chip);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.sugs{display:flex;flex-direction:column;gap:6px}
+.sugs button{min-height:52px;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:16px;cursor:pointer}
+.wxrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.temp{min-height:56px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 10px;color:var(--ink);cursor:pointer}
+.ferr{margin:0;color:var(--warn-ink);background:var(--warn-bg);border:2px solid var(--warn-line);border-radius:10px;padding:10px 12px;font-weight:700}
+.ferr:empty{display:none}
 .empty{min-height:64px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;border:2px dashed var(--muted);color:var(--muted);text-decoration:none}
 .empty b{color:var(--ink);font-size:17px;display:block}
 .tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);color:var(--ink);text-decoration:none;min-width:0}
@@ -160,12 +166,13 @@ function addDays(ds,n){const [y,m,d]=ds.split('-').map(Number);const t=new Date(
 function nice(ds){if(!ds)return '';const [y,m,d]=ds.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});}
 function tzOffsetMin(tz,date){const p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(date).forEach(x=>p[x.type]=x.value);return (Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute,+p.second)-date.getTime())/60000;}
 function zonedToDate(ds,ts,tz){if(!ds||!ts)return null;const [y,m,d]=ds.split('-').map(Number);const [h,mi]=ts.split(':').map(Number);const guess=Date.UTC(y,m-1,d,h,mi);let off=tzOffsetMin(tz,new Date(guess));let t=guess-off*60000;off=tzOffsetMin(tz,new Date(t));return new Date(guess-off*60000);}
-function zoneName(tz){const city=(tz.split('/').pop()||tz).replace(/_/g,' ');return city;}
+function zoneName(tz){const city=(tz.split('/').pop()||tz).replace(/_/g,' ');return city==='Calcutta'?'Kolkata':city;}
+function zoneDay(z,now){return dayInfo(z.tz,now,(z.lat!=null&&z.lon!=null)?[z.lat,z.lon]:null).day;}
 function dur(ms){const m=Math.round(Math.abs(ms)/60000);const h=Math.floor(m/60);return (h?h+' h ':'')+(m%60)+' min';}
 /* representative coordinates for common zones, used only for sunset times */
 const COORDS={'Asia/Kolkata':[19.08,72.88],'Asia/Calcutta':[19.08,72.88],'Asia/Dubai':[25.2,55.27],'Europe/Istanbul':[41.01,28.98],'Europe/London':[51.51,-0.13],'Europe/Paris':[48.86,2.35],'Europe/Berlin':[52.52,13.4],'Europe/Rome':[41.9,12.5],'Europe/Madrid':[40.42,-3.7],'Europe/Amsterdam':[52.37,4.9],'Europe/Zurich':[47.37,8.54],'Europe/Vienna':[48.21,16.37],'Europe/Prague':[50.08,14.44],'Europe/Athens':[37.98,23.73],'Europe/Moscow':[55.76,37.62],'Asia/Singapore':[1.35,103.82],'Asia/Bangkok':[13.76,100.5],'Asia/Kuala_Lumpur':[3.14,101.69],'Asia/Jakarta':[-6.2,106.85],'Asia/Hong_Kong':[22.32,114.17],'Asia/Shanghai':[31.23,121.47],'Asia/Tokyo':[35.68,139.69],'Asia/Seoul':[37.57,126.98],'Asia/Kathmandu':[27.72,85.32],'Asia/Colombo':[6.93,79.86],'Asia/Dhaka':[23.81,90.41],'Asia/Qatar':[25.29,51.53],'Asia/Riyadh':[24.71,46.68],'Asia/Muscat':[23.59,58.41],'Asia/Bahrain':[26.23,50.59],'Asia/Kuwait':[29.38,47.99],'Africa/Cairo':[30.04,31.24],'Africa/Nairobi':[-1.29,36.82],'Africa/Johannesburg':[-26.2,28.05],'Australia/Sydney':[-33.87,151.21],'Australia/Melbourne':[-37.81,144.96],'Pacific/Auckland':[-36.85,174.76],'America/New_York':[40.71,-74.01],'America/Chicago':[41.88,-87.63],'America/Denver':[39.74,-104.99],'America/Los_Angeles':[34.05,-118.24],'America/Toronto':[43.65,-79.38],'America/Vancouver':[49.28,-123.12],'America/Sao_Paulo':[-23.55,-46.63],'America/Mexico_City':[19.43,-99.13]};
-function sunTimes(date,lat,lon){const r=Math.PI/180;const n=Math.round(date.getTime()/86400000+2440587.5-2451545.0+0.0008-lon/360);const J=n+0.0008-lon/360;const M=(357.5291+0.98560028*J)%360;const C=1.9148*Math.sin(M*r)+0.02*Math.sin(2*M*r)+0.0003*Math.sin(3*M*r);const L=(M+C+180+102.9372)%360;const Jt=2451545+J+0.0053*Math.sin(M*r)-0.0069*Math.sin(2*L*r);const dec=Math.asin(Math.sin(L*r)*Math.sin(23.44*r));const cw=(Math.sin(-0.833*r)-Math.sin(lat*r)*Math.sin(dec))/(Math.cos(lat*r)*Math.cos(dec));if(cw<-1||cw>1)return null;const w=Math.acos(cw)/r;const toD=x=>new Date((x-2440587.5)*86400000);return {rise:toD(Jt-w/360),set:toD(Jt+w/360)};}
-function dayInfo(tz,now,ll){const c=ll||COORDS[tz];if(c){let s=sunTimes(now,c[0],c[1]);if(s){if(now<s.rise){return {day:false,rise:s.rise};}if(now<s.set){return {day:true,set:s.set};}const t=sunTimes(new Date(now.getTime()+86400000),c[0],c[1]);return {day:false,rise:t&&t.rise};}}const h=hourIn(tz,now);return {day:h>=6&&h<18,approx:true};}
+function sunTimes(date,lat,lon){const r=Math.PI/180;const n=Math.round(date.getTime()/86400000+2440587.5-2451545.0+lon/360);const J=n+0.0008-lon/360;const M=(357.5291+0.98560028*J)%360;const C=1.9148*Math.sin(M*r)+0.02*Math.sin(2*M*r)+0.0003*Math.sin(3*M*r);const L=(M+C+180+102.9372)%360;const Jt=2451545+J+0.0053*Math.sin(M*r)-0.0069*Math.sin(2*L*r);const dec=Math.asin(Math.sin(L*r)*Math.sin(23.44*r));const cw=(Math.sin(-0.833*r)-Math.sin(lat*r)*Math.sin(dec))/(Math.cos(lat*r)*Math.cos(dec));if(cw<-1||cw>1)return null;const w=Math.acos(cw)/r;const toD=x=>new Date((x-2440587.5)*86400000);return {rise:toD(Jt-w/360),set:toD(Jt+w/360)};}
+function dayInfo(tz,now,ll){const c=ll||COORDS[tz]||[20,tzOffsetMin(tz,now)/4];if(c){let s=sunTimes(now,c[0],c[1]);if(s){if(now<s.rise){return {day:false,rise:s.rise};}if(now<s.set){return {day:true,set:s.set};}const t=sunTimes(new Date(now.getTime()+86400000),c[0],c[1]);return {day:false,rise:t&&t.rise};}}const h=hourIn(tz,now);return {day:h>=6&&h<18,approx:true};}
 
 
 /* ---------- live data: GPS + weather alerts (work when hosted on https; blocked inside the Claude preview) ---------- */
@@ -204,32 +211,47 @@ async function refreshWeather(force){
   catch(e){live.wxErr=live.posErr==='denied'?'denied':'noloc';live.wxBusy=false;live.wxAt=Date.now();if(route()==='home')render();return;}
   const place=await placeName(lat,lon);const src=place||'your location';
   try{
-    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(3)+'&longitude='+lon.toFixed(3)+'&current=temperature_2m,weather_code&hourly=temperature_2m,precipitation,weather_code,wind_gusts_10m,uv_index&forecast_hours=12&timezone=auto';
+    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(3)+'&longitude='+lon.toFixed(3)+'&current=temperature_2m&timezone=auto';
     const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('http');
     const j=await r.json();
-    live.wx={alerts:deriveAlerts(j),temp:j.current&&j.current.temperature_2m,src};live.wxErr=null;
+    live.wx={temp:j.current&&j.current.temperature_2m,src};live.wxErr=null;
   }catch(e){live.wxErr='offline';}
   live.wxAt=Date.now();live.wxBusy=false;if(route()==='home')render();
 }
+function gWeather(place){return 'https://www.google.com/search?q='+enc('weather '+(place||''));}
+function wxButton(place,small){return '<a class="btn" style="'+(small?'min-height:48px;font-size:16px;padding:0 8px':'')+'" href="'+gWeather(place)+'" target="_blank" rel="noopener" aria-label="Weather alerts'+(place?' for '+esc(place):'')+' on Google">'+ic('alert',small?20:22)+(small?'Weather':'Weather alerts')+'</a>';}
 function weatherBlock(){
-  if(live.wx){
-    const a=live.wx.alerts;
-    const head='<span class="muted">Live weather for '+esc(live.wx.src)+(live.wx.temp!=null?' · now '+Math.round(live.wx.temp)+'°C':'')+' · next 12 hours</span>';
-    if(!a.length)return '<div class="note">'+head+'<span>No weather alerts.</span></div>';
-    return '<div class="warn">'+ic('alert')+'<span><span class="label" style="color:inherit">Weather alert'+(a.length>1?'s':'')+'</span><br>'+a.map(esc).join('<br>')+'<br><span style="font-size:15px">'+'Live weather for '+esc(live.wx.src)+'</span></span></div>';
-  }
-  if(live.wxErr==='offline'){
-    if(IN_FRAME)return '';  /* preview link: outside connections are blocked, so show nothing */
-    if(navigator.onLine===false)return '<div class="muted">No internet connection. Weather alerts will appear when the phone is back online.</div>';
-    return '<div class="row" style="gap:10px"><span class="muted grow">Weather alerts are not available right now.</span><button class="btn" style="min-height:48px" data-act="wxRetry">Try again</button></div>';
-  }
-  if(live.wxErr==='denied')return IN_FRAME?'':'<div class="warn">'+ic('pin')+'<span>Weather alerts use your phone location. Location is blocked for this app: tap the lock icon next to the web address, allow Location, then tap Try again.<br><button class="btn" style="min-height:48px;margin-top:8px" data-act="wxRetry">Try again</button></span></div>';
-  if(live.wxErr==='noloc')return IN_FRAME?'':'<div class="row" style="gap:10px"><span class="muted grow">Turn on Location on the phone to see weather alerts for where you are.</span><button class="btn" style="min-height:48px" data-act="wxRetry">Try again</button></div>';
-  return IN_FRAME?'':'<div class="muted">Checking weather alerts…</div>';
+  const place=live.wx&&live.wx.src!=='your location'?live.wx.src:(live.place||'');
+  let temp='';
+  if(live.wx&&live.wx.temp!=null)temp='<span class="temp" role="img" aria-label="Temperature now '+Math.round(live.wx.temp)+' degrees">'+ic('cloud',24)+Math.round(live.wx.temp)+'°C</span>';
+  else if(!IN_FRAME&&(live.wxErr==='denied'||live.wxErr==='noloc'||live.wxErr==='offline'))temp='<button class="temp" style="font-size:16px" data-act="wxRetry">'+ic('pin',20)+'Show temperature</button>';
+  else if(!IN_FRAME)temp='<span class="temp" style="font-size:16px;color:var(--muted)">…</span>';
+  return temp?'<div class="wxrow">'+temp+wxButton(place)+'</div>':wxButton(place);
 }
 const IS_ANDROID=/Android/i.test(navigator.userAgent||'');
 const IN_FRAME=(()=>{try{return window.top!==window.self;}catch(e){return true;}})();
-const TRANSLATE_HREF=IS_ANDROID&&!IN_FRAME?'intent://translate.google.com/#Intent;scheme=https;package=com.google.android.apps.translate;S.browser_fallback_url=https%3A%2F%2Ftranslate.google.com;end':'https://translate.google.com';
+const TRANSLATE_HREF=IS_ANDROID&&!IN_FRAME?'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.apps.translate;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.google.android.apps.translate;end':'https://translate.google.com';
+
+/* ---------- address search: Google Places when a key is set, else OpenStreetMap ---------- */
+const GOOGLE_MAPS_KEY='';  /* paste a Google Maps Platform key (Places API New) here to search Google Maps */
+let gReady=null;
+function loadGoogle(){if(!GOOGLE_MAPS_KEY)return Promise.resolve(null);if(gReady)return gReady;
+  gReady=new Promise(res=>{window.__gmInit=()=>res(window.google);const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+GOOGLE_MAPS_KEY+'&v=weekly&loading=async&callback=__gmInit';sc.async=true;sc.onerror=()=>res(null);document.head.appendChild(sc);setTimeout(()=>res(null),8000);});return gReady;}
+let gToken=null;
+async function searchPlaces(q){
+  const g=await loadGoogle();
+  if(g&&g.maps&&g.maps.importLibrary){try{const lib=await g.maps.importLibrary('places');if(!gToken)gToken=new lib.AutocompleteSessionToken();
+    const req={input:q,sessionToken:gToken};if(live.pos)req.origin={lat:live.pos.lat,lng:live.pos.lon};
+    const {suggestions}=await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions(req);
+    return suggestions.filter(x=>x.placePrediction).slice(0,5).map(x=>{const t=x.placePrediction.text;return t&&(t.text||String(t));});}catch(e){}}
+  try{const r=await fetch('https://photon.komoot.io/api/?limit=5&lang=en&q='+enc(q)+(live.pos?'&lat='+live.pos.lat+'&lon='+live.pos.lon:''));if(!r.ok)return [];const j=await r.json();
+    return (j.features||[]).map(f=>{const p=f.properties||{};return [p.name,[p.housenumber,p.street].filter(Boolean).join(' '),p.city||p.district,p.state,p.country].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(', ');}).filter(Boolean);}catch(e){return [];}
+}
+async function geocode(name){if(!name)return null;try{const r=await fetch('https://photon.komoot.io/api/?limit=1&lang=en&q='+enc(name));const j=await r.json();const c=j.features&&j.features[0]&&j.features[0].geometry.coordinates;return c?[c[1],c[0]]:null;}catch(e){return null;}}
+let sugTimer=null;
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.place)return;const k=el.dataset.place;clearTimeout(sugTimer);const q=el.value.trim();const box=document.getElementById('sug-'+k);if(q.length<3){if(box)box.innerHTML='';return;}
+  sugTimer=setTimeout(async()=>{const list=await searchPlaces(q);const b=document.getElementById('sug-'+k);if(!b||document.getElementById('f-'+k).value.trim()!==q)return;
+    b.innerHTML=list.map(t=>'<button type="button" data-act="pickPlace" data-key="'+k+'" data-val="'+esc(t)+'">'+ic('pin',18)+' '+esc(t)+'</button>').join('');},350);});
 
 /* ---------- data ---------- */
 function uid(){return Math.random().toString(36).slice(2,9);}
@@ -238,7 +260,7 @@ function sample(){
   const h1=uid(),h2=uid();
   return {sample:true,
     profile:{name:'Asha Mehta',photo:''},
-    zones:[{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
+    zones:[{label:'India',tz:'Asia/Kolkata',home:true},{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
     contacts:[{id:uid(),name:'Rahul Mehta',relation:'Son',phone:'+91 98200 12345',whatsapp:true},{id:uid(),name:'Tour manager – Priya',relation:'Tour manager',phone:'+971 50 123 4567',whatsapp:true}],
     group:{name:'Dubai–Turkey Seniors Tour',link:'https://chat.whatsapp.com/'},
     meds:[{id:uid(),name:'Metformin 500 mg',photo:'',m:'1',a:'0',n:'1',note:'After food'},{id:uid(),name:'Amlodipine 5 mg',photo:'',m:'0',a:'0',n:'1',note:'Before sleep'}],
@@ -253,7 +275,7 @@ function sample(){
   };
 }
 function blank(){return {sample:false,profile:{name:'',photo:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
-function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:''},d.profile||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});return d;}
+function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:''},d.profile||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});if(d.sample&&!d.zones.some(z=>z.home)){const k=d.zones.find(z=>z.tz==='Asia/Kolkata');if(k)k.home=true;else d.zones.unshift({label:'India',tz:'Asia/Kolkata',home:true});}return d;}
 let data;
 let storageOk=true;
 try{const raw=localStorage.getItem(KEY);data=raw?normalize(JSON.parse(raw)):sample();}catch(e){storageOk=false;data=sample();}
@@ -261,7 +283,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(data));storageOk=tru
 
 /* ---------- UI state ---------- */
 const open={};             // collapsed sections on home
-let tourOpen=true;         // guided tour group in menu
+let tourOpen=false;         // guided tour group in menu
 let edit=null;             // {kind, id|null}
 let draftPhotos={};
 let pendingDelete=null;
@@ -276,7 +298,7 @@ function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
 function resetUi(){edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
-function go(r,fromHistory){r=valid(r);const changed=r!==cur;cur=r;resetUi();
+function go(r,fromHistory){r=valid(r);if(r==='menu')tourOpen=false;const changed=r!==cur;cur=r;resetUi();
   if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
   render();try{window.scrollTo(0,0);}catch(e){}}
 
@@ -311,16 +333,18 @@ function homeView(){
   if(di.day&&di.set){dl='Daylight until <b>'+fmtTime(DEVICE_TZ,di.set)+'</b> · '+dur(di.set-now)+' left';}
   else if(!di.day&&di.rise){dl='Night now · sunrise at <b>'+fmtTime(DEVICE_TZ,di.rise)+'</b>';}
   else{dl=di.day?'Daytime':'Night time';}
-  h+='<section class="sec"><h2>'+ic('clock')+'Time</h2><div class="card strong"><div class="row"><span role="img" aria-label="'+(di.day?'Day':'Night')+'">'+ic(di.day?'sun':'moon',32,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b><br><span class="muted">'+(di.day?'Day':'Night')+'</span></span><span class="big">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
+  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+(di.day?'Day':'Night')+'">'+ic(di.day?'sun':'moon',32,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b><br><span class="muted">'+(di.day?'Day':'Night')+'</span></span><span class="big">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
      '<div class="note" style="flex-direction:row;align-items:center;gap:10px">'+ic('sunset',24,'sun')+'<span>'+dl+'</span></div>'+
      weatherBlock()+'</div>';
-  const istDay=dayInfo('Asia/Kolkata',now).day;
-  h+='<div class="card" style="flex-direction:row;align-items:center"><span role="img" aria-label="'+(istDay?'Day':'Night')+'">'+ic(istDay?'sun':'moon',30,istDay?'sun':'moon')+'</span><span class="grow"><b>India (IST)</b><br><span class="muted">'+(istDay?'Day':'Night')+'</span></span><span class="big" style="font-size:28px">'+fmtTime('Asia/Kolkata',now)+'</span></div></section>';
+  const hz=data.zones.find(z=>z.home&&validTz(z.tz));
+  if(hz){const hd=zoneDay(hz,now);
+    h+='<div class="card" style="gap:10px"><div class="row"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',30,hd?'sun':'moon')+'</span><span class="grow"><span class="label">Home</span><br><b>'+esc(hz.label||zoneName(hz.tz))+'</b> <span class="muted">· '+(hd?'Day':'Night')+'</span></span><span class="big" style="font-size:28px">'+fmtTime(hz.tz,now)+'</span></div>'+wxButton(hz.label||zoneName(hz.tz),true)+'</div>';}
+  h+='</section>';
 
   /* Other zones */
-  const zs=data.zones.filter(z=>validTz(z.tz));
+  const zs=data.zones.filter(z=>validTz(z.tz)&&!z.home);
   if(zs.length){
-    const body='<div class="grid2">'+zs.map(z=>{const d=dayInfo(z.tz,now).day;return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span><span class="muted">'+(d?'Day':'Night')+'</span></div><b style="overflow-wrap:anywhere">'+esc(z.label||zoneName(z.tz))+'</b><span class="t">'+fmtTime(z.tz,now)+'</span></div>'}).join('')+'</div>';
+    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span><span class="muted">'+(d?'Day':'Night')+'</span></div><b style="overflow-wrap:anywhere">'+esc(z.label||zoneName(z.tz))+'</b><span class="t">'+fmtTime(z.tz,now)+'</span>'+wxButton(z.label||zoneName(z.tz),true)+'</div>'}).join('')+'</div>';
     h+=section('zones','globe','Other time zones',esc(zs.map(z=>z.label||zoneName(z.tz)).join(' · ')),zs.length,body);
   }
 
@@ -332,7 +356,7 @@ function homeView(){
 
   /* Group + Translate tiles */
   const g=data.group;
-  const trTile='<a class="tile" href="'+TRANSLATE_HREF+'" target="_blank" rel="noopener">'+ic('translate')+'<b>Google Translate</b><span>Opens the Translate app</span></a>';
+  const trTile='<a class="tile" href="'+TRANSLATE_HREF+'" target="_blank" rel="noopener">'+ic('translate')+'<b>Google Translate</b><span>Opens the app · tap the mic to speak</span></a>';
   h+=g.link?'<div class="grid2"><a class="tile" href="'+esc(g.link)+'" target="_blank" rel="noopener">'+ic('group')+'<b>Tour WhatsApp group</b><span>'+esc(g.name||'Opens WhatsApp')+'</span></a>'+trTile+'</div>':trTile;
 
   /* Medication */
@@ -416,7 +440,7 @@ function flightCard(f,now){
 function menuView(){
   const sub=[['tour','mobile','App tour','Learn this app step by step'],['wifi','wifi','Wi-Fi connection','Join hotel or café Wi-Fi'],['network','signal','Phone network connection','Roaming, SIM and mobile data'],['inflight','plane','In-flight network connection','Connect to Wi-Fi on the plane'],['translate','translate','Translate','Google Translate: speak, type, camera']];
   let h='<div class="top"><a class="iconbtn" href="#home" aria-label="Close menu">'+ic('close')+'</a><h1>Menu</h1></div><main><nav class="navlist" aria-label="Main menu">';
-  h+='<button type="button" class="navitem" data-act="tourToggle" aria-expanded="'+tourOpen+'">'+ic('compass',28)+'<span class="grow"><span class="t">Guided tour</span><span class="s">Step-by-step help</span></span>'+ic(tourOpen?'up':'down',22)+'</button>';
+  h+='<button type="button" class="navitem" data-act="tourToggle" aria-expanded="'+tourOpen+'">'+ic('compass',28)+'<span class="grow"><span class="t">Guide</span><span class="s">Step-by-step help</span></span>'+ic(tourOpen?'up':'down',22)+'</button>';
   if(tourOpen)h+='<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 12px 12px;border-bottom:1px solid var(--line)">'+sub.map(s=>'<a class="subitem" href="#'+s[0]+'">'+ic(s[1],24)+'<span class="grow"><span class="t">'+s[2]+'</span><span class="s">'+s[3]+'</span></span>'+ic('chev',22)+'</a>').join('')+'</div>';
   h+='<a class="navitem" href="#itinerary">'+ic('cal',28)+'<span class="grow"><span class="t">View itinerary</span></span>'+ic('chev',22)+'</a>';
   h+='<a class="navitem" href="#config">'+ic('sliders',28)+'<span class="grow"><span class="t">Configuration</span><span class="s">Trip, safety, profile, backup</span></span>'+ic('chev',22)+'</a>';
@@ -458,24 +482,27 @@ function configView(){
 const TZS=(()=>{try{return Intl.supportedValuesOf('timeZone')}catch(e){return Object.keys(COORDS)}})();
 const FORMS={
   days:{title:'Itinerary days',one:'day',sort:(a,b)=>(a.date||'').localeCompare(b.date||''),line:d=>[nice(d.date),d.place],fields:[
-    ['date','Date','date',1],['place','Place name','text',1],['location','Location / address','text'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
-  hotels:{title:'Hotels',one:'hotel',line:h=>[h.name,h.address],fields:[['name','Hotel name','text',1],['address','Address','text'],['phone','Phone (with country code)','tel']]},
+    ['date','Date','date',1],['place','Place name','text',1],['location','Location / address','place'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
+  hotels:{title:'Hotels',one:'hotel',line:h=>[h.name,h.address],fields:[['name','Hotel name','text',1],['address','Address','place'],['phone','Phone (with country code)','tel']]},
   flights:{title:'Flights',one:'flight',sort:(a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')),line:f=>[nice(f.date)+' · '+(f.time||''),f.number+' '+f.from+' → '+f.to],fields:[
-    ['date','Date','date',1],['number','Flight number','text',1],['from','From','text'],['to','To','text'],['time','Departure time (local)','time',1],['tz','Departure time zone','tz'],['airport','Airport (for directions)','text'],['notes','Notes for the flight','textarea']]},
+    ['date','Date','date',1],['number','Flight number','text',1],['from','From','text'],['to','To','text'],['time','Departure time (local)','time',1],['tz','Departure time zone','tz'],['airport','Airport (for directions)','place'],['notes','Notes for the flight','textarea']]},
   meds:{title:'Critical medication',one:'medicine',line:m=>[m.name,(m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+(m.note?' · '+m.note:'')],fields:[
     ['name','Medicine name','text',1],['photo','Photo of the medicine','photo'],['m','Morning','dose'],['a','Afternoon','dose'],['n','Night','dose'],['note','Instructions (e.g. after food)','text']]},
   contacts:{title:'Emergency contacts',one:'contact',line:c=>[c.name,[c.relation,c.phone].filter(Boolean).join(' · ')],fields:[['name','Name','text',1],['relation','Relation','text'],['phone','Phone (with country code)','tel',1],['whatsapp','Has WhatsApp on this number','check']]}
 };
 function fieldHtml(f,item){
-  const [k,label,type,req]=f;const v=item?item[k]:'';const id='f-'+k;const r=req?' required':'';
+  const [k,label,type,req]=f;let v=item?item[k]:'';if(!item&&type==='date')v=nextDate();const id='f-'+k;const r=req?' required':'';
   if(type==='textarea')return '<label class="f" for="'+id+'">'+label+'<textarea id="'+id+'"'+r+'>'+esc(v)+'</textarea></label>';
   if(type==='check')return '<label class="chk"><input type="checkbox" id="'+id+'"'+(item?(v?' checked':''):' checked')+'>'+label+'</label>';
   if(type==='photo'){const cur=k in draftPhotos?draftPhotos[k]:v;return '<div class="f" style="display:flex;flex-direction:column;gap:6px"><b style="font-size:17px">'+label+'</b><div class="row">'+photoBox(cur,'88px','88px')+'<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="'+id+'" style="min-height:52px">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="'+id+'" data-photo="'+k+'" hidden>'+(cur?'<button type="button" class="btn" style="min-height:48px" data-act="rmPhoto" data-key="'+k+'">Remove photo</button>':'')+'</span></div></div>';}
   if(type==='hotel')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'"><option value="">None</option>'+data.hotels.map(h=>'<option value="'+esc(h.id)+'"'+(h.id===v?' selected':'')+'>'+esc(h.name)+'</option>').join('')+'</select></label>'+(data.hotels.length?'':'<span class="muted">Add hotels first under Configuration › Hotels.</span>');
   if(type==='dose')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'">'+['0','½','1','2','3'].map(o=>'<option'+(String(v||'0')===o?' selected':'')+'>'+o+'</option>').join('')+'</select></label>';
+  if(type==='place')return '<div class="f" style="display:flex;flex-direction:column;gap:6px"><label for="'+id+'" style="font-size:17px;font-weight:700">'+label+'</label><input id="'+id+'" data-place="'+k+'" value="'+esc(v)+'" placeholder="Start typing to search" autocomplete="off" style="min-height:52px;border-radius:10px;border:2px solid var(--muted);padding:8px 12px;font-size:18px;background:var(--bg);box-sizing:border-box;width:100%"><div class="sugs" id="sug-'+k+'" role="listbox" aria-label="Suggestions"></div><button type="button" class="btn" style="min-height:48px;font-size:16px" data-act="mapsCheck" data-key="'+k+'">'+ic('pin',20)+'Check on Google Maps</button></div>';
   if(type==='tz')return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" list="tzlist" value="'+esc(v||DEVICE_TZ)+'" autocomplete="off"></label>';
   return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" type="'+type+'" value="'+esc(v)+'"'+r+(type==='tel'?' inputmode="tel"':'')+'></label>';
 }
+function nextDate(){const ds=data.days.map(d=>d.date).filter(Boolean).sort();const today=dateIn(DEVICE_TZ);if(edit&&edit.kind==='days'&&ds.length){const n=addDays(ds[ds.length-1],1);return n>today?n:today;}return today;}
+function showErr(msg,fieldId){const e=document.getElementById('formerr');if(e)e.textContent=msg;toast(msg);const f=fieldId&&document.getElementById(fieldId);if(f){try{f.scrollIntoView({block:'center'});}catch(x){}f.focus();}}
 function listView(kind){
   const F=FORMS[kind];const list=data[kind];
   if(edit&&edit.kind===kind){
@@ -483,7 +510,7 @@ function listView(kind){
     let h=top((item?'Edit ':'Add ')+F.one,kind)+'<main><form data-form="'+kind+'" novalidate>'+F.fields.map(f=>fieldHtml(f,item)).join('');
     if(kind==='flights'||kind==='days'&&false){}
     h+='<datalist id="tzlist">'+TZS.map(t=>'<option value="'+esc(t)+'">').join('')+'</datalist>';
-    h+='<p class="muted" id="formerr" role="alert" style="margin:0"></p><button class="btn primary" type="button" data-act="submitForm">Save</button><button class="btn" type="button" data-act="cancelEdit">Cancel</button></form></main>';
+    h+='<p class="ferr" id="formerr" role="alert"></p><button class="btn primary" type="button" data-act="submitForm">Save</button><button class="btn" type="button" data-act="cancelEdit">Cancel</button></form></main>';
     return h;
   }
   const items=F.sort?list.slice().sort(F.sort):list;
@@ -511,9 +538,9 @@ function profileView(){
   return h;
 }
 function zonesView(){
-  let h=top('Time zones','config')+'<main><div class="card"><span class="label">Time zones on home screen</span><p class="muted" style="margin:0">Local time and India (IST) always show. Use the arrows to set the order of the rest.</p>';
-  data.zones.forEach((z,i)=>{h+='<div class="listrow" style="background:var(--bg)"><span class="grow"><b>'+(i+1)+'. '+esc(z.label||zoneName(z.tz))+'</b><br><span class="muted">'+esc(z.tz)+(validTz(z.tz)?' · now '+fmtTime(z.tz):' · not a valid zone')+'</span></span><button class="iconbtn" style="width:48px;height:48px" data-act="zUp" data-i="'+i+'" aria-label="Move up"'+(i===0?' disabled':'')+'>'+ic('up',20)+'</button><button class="iconbtn" style="width:48px;height:48px" data-act="zDown" data-i="'+i+'" aria-label="Move down"'+(i===data.zones.length-1?' disabled':'')+'>'+ic('down',20)+'</button><button class="iconbtn" style="width:48px;height:48px" data-act="zDel" data-i="'+i+'" aria-label="Remove">'+ic('trash',20)+'</button></div>';});
-  h+='<form data-form="zone" style="gap:10px"><label class="f" for="z-label">Name to show<input id="z-label" placeholder="e.g. Dubai"></label><label class="f" for="z-tz">Time zone<input id="z-tz" list="tzlist" placeholder="e.g. Asia/Dubai" autocomplete="off"></label><datalist id="tzlist">'+TZS.map(t=>'<option value="'+esc(t)+'">').join('')+'</datalist><p class="muted" id="zerr" role="alert" style="margin:0"></p><button class="btn" type="button" data-act="submitForm">'+ic('plus',22)+'Add time zone</button></form></div></main>';
+  let h=top('Time zones','config')+'<main><div class="card"><span class="label">Time zones on home screen</span><p class="muted" style="margin:0">Local time always shows. Tap Set as home on one zone to show it under local time. Use the arrows to set the order of the others.</p>';
+  data.zones.forEach((z,i)=>{h+='<div class="listrow" style="background:var(--bg)"><span class="grow"><b>'+(i+1)+'. '+esc(z.label||zoneName(z.tz))+'</b><br><span class="muted">'+esc(z.tz)+(validTz(z.tz)?' · now '+fmtTime(z.tz):' · not a valid zone')+'</span>'+(z.home?'<br><b style="color:var(--accent)">Home time zone</b>':'<br><button class="btn" style="min-height:44px;font-size:16px;margin-top:6px" data-act="zHome" data-i="'+i+'">Set as home</button>')+'</span><button class="iconbtn" style="width:48px;height:48px" data-act="zUp" data-i="'+i+'" aria-label="Move up"'+(i===0?' disabled':'')+'>'+ic('up',20)+'</button><button class="iconbtn" style="width:48px;height:48px" data-act="zDown" data-i="'+i+'" aria-label="Move down"'+(i===data.zones.length-1?' disabled':'')+'>'+ic('down',20)+'</button><button class="iconbtn" style="width:48px;height:48px" data-act="zDel" data-i="'+i+'" aria-label="Remove">'+ic('trash',20)+'</button></div>';});
+  h+='<form data-form="zone" style="gap:10px"><label class="f" for="z-label">Name to show<input id="z-label" placeholder="e.g. Dubai"></label><label class="f" for="z-tz">Time zone<input id="z-tz" list="tzlist" placeholder="e.g. Asia/Dubai" autocomplete="off"></label><datalist id="tzlist">'+TZS.map(t=>'<option value="'+esc(t)+'">').join('')+'</datalist><label class="chk"><input type="checkbox" id="z-home">This is my home time zone</label><p class="ferr" id="zerr" role="alert"></p><button class="btn" type="button" data-act="submitForm">'+ic('plus',22)+'Add time zone</button></form></div></main>';
   return h;
 }
 function groupView(){
@@ -531,8 +558,8 @@ function backupView(){
 
 /* ---------- GUIDED TOUR pages ---------- */
 const TOUR=[
- ['menu','The menu button','Top left on the home screen. It opens Guided tour, View itinerary and Configuration.'],
- ['clock','Time','Your local time, how much daylight is left, live weather alerts, and India time. Other time zones are one tap below.'],
+ ['menu','The menu button','Top left on the home screen. It opens Guide, View itinerary and Configuration.'],
+ ['clock','Time','Your local time, how much daylight is left, the temperature now, a Weather alerts button, and your home time zone. Other time zones are one tap below.'],
  ['phone','Emergency contacts','Tap to open. Each person has a Call button and a WhatsApp button.'],
  ['pill','Medication','Your medicines with photos and when to take them, shown as Morning-Afternoon-Night (for example 1-0-1), plus allergies.'],
  ['cal','Today and tomorrow','Where you are going, ticket tips, what to wear and carry, and your hotel. A hotel change is highlighted.'],
@@ -547,7 +574,7 @@ const HELP={
  wifi:['Wi-Fi connection','wifi',['Ask the hotel reception for the Wi-Fi name and password. It is often printed on the room key card.','Swipe down from the top of the screen and press and hold the Wi-Fi icon.','Tap the network with the hotel name, type the password, then tap Connect.','If a hotel page opens in the browser, enter your room number and surname to finish.'],'Avoid banking on open café Wi-Fi.'],
  network:['Phone network connection','signal',['Before you fly, check with your mobile company that international roaming is switched on for your number.','Abroad, open Settings, then Network & internet, then SIMs, and turn on Roaming.','If you bought a local SIM or eSIM, select it for Mobile data in the same SIMs screen.','Restart the phone if there is no signal after landing.'],'Roaming data can be costly. Turn Roaming off when you are on hotel Wi-Fi.'],
  inflight:['In-flight network connection','plane',['Switch on Aeroplane mode when the crew asks.','Turn Wi-Fi back on: swipe down and tap the Wi-Fi icon. Aeroplane mode stays on.','Choose the airline network (for example OnAir or the airline name).','Open the browser. The airline page opens; pick the free messaging plan or buy a plan.'],'Not every flight has Wi-Fi. Check the seat card or ask the crew.'],
- translate:['Translate','translate',['Tap Open Google Translate below. The Translate app opens; if it is not installed, the website opens.','Choose your language on the left and the local language on the right.','Tap the microphone and speak, then show the screen to the other person.','Tap Camera to translate signs and menus by pointing the phone at them.'],'Conversation mode lets both people speak in turn.']
+ translate:['Translate','translate',['Tap Open Google Translate below. The Translate app opens; if it is not installed, the Play Store opens so you can install it.','Choose your language on the left and the local language on the right.','Tap the microphone and speak, then show the screen to the other person. Tap Conversation to talk in turns.','Tap Camera to translate signs and menus by pointing the phone at them.'],'Conversation mode lets both people speak in turn.']
 };
 function helpView(k){
   const [t,icon,steps,tip]=HELP[k];
@@ -597,11 +624,14 @@ document.addEventListener('click',e=>{
   if(a==='del'){const k=b.dataset.kind;data[k]=data[k].filter(x=>x.id!==b.dataset.id);if(k==='hotels')data.days.forEach(d=>{if(d.hotelId===b.dataset.id)d.hotelId=''});pendingDelete=null;data.sample=false;save();toast('Deleted');render();return;}
   if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';render();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
+  if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
   if(a==='zDel'){data.zones.splice(+b.dataset.i,1);save();render();return;}
   if(a==='tourNext'){tourStep=Math.min(TOUR.length-1,tourStep+1);render();return;}
   if(a==='tourPrev'){tourStep=Math.max(0,tourStep-1);render();return;}
   if(a==='submitForm'){const f=b.closest('form[data-form]');if(f)handleSubmit(f);return;}
   if(a==='wxRetry'){refreshWeather(true);return;}
+  if(a==='pickPlace'){const f=document.getElementById('f-'+b.dataset.key);if(f)f.value=b.dataset.val;const box=document.getElementById('sug-'+b.dataset.key);if(box)box.innerHTML='';gToken=null;return;}
+  if(a==='mapsCheck'){const f=document.getElementById('f-'+b.dataset.key);const q=f?f.value.trim():'';if(!q){toast('Type the place or address first.');return;}const l=document.createElement('a');l.href='https://www.google.com/maps/search/?api=1&query='+enc(q);l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return;}
   if(a==='export'){doExport();return;}
   if(a==='doImport'){doImport();return;}
   if(a==='cancelImport'){importArmed=null;render();return;}
@@ -620,7 +650,7 @@ document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('f
 function handleSubmit(form){
   const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
   if(kind==='profile'){data.profile.name=val('f-name');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
-  if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}data.zones.push({label:val('z-label')||zoneName(tz),tz});if(save())toast('Time zone added');render();return;}
+  if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}const nz={label:val('z-label')||zoneName(tz),tz};if(document.getElementById('z-home').checked){data.zones.forEach(z=>z.home=false);nz.home=true;}data.zones.push(nz);if(save())toast('Time zone added');render();geocode(nz.label).then(c=>{if(c){nz.lat=c[0];nz.lon=c[1];save();render();}});return;}
   if(kind==='allergies'){data.allergies={food:val('al-food'),medication:val('al-med')};if(save())toast('Allergies saved');render();return;}
   if(kind==='group'){const l=val('g-link');if(l&&!/^https:\/\//.test(l)){document.getElementById('gerr').textContent='The link should start with https://';return;}data.group={name:val('g-name'),link:l};if(save())toast('Group saved');render();return;}
   const F=FORMS[kind];if(!F)return;
@@ -630,8 +660,8 @@ function handleSubmit(form){
     if(type==='photo'){if(k in draftPhotos)out[k]=draftPhotos[k];else if(!item)out[k]='';continue;}
     if(type==='check'){out[k]=document.getElementById('f-'+k).checked;continue;}
     const v=val('f-'+k);
-    if(req&&!v){document.getElementById('formerr').textContent=label+' is needed.';document.getElementById('f-'+k).focus();return;}
-    if(type==='tz'&&v&&!validTz(v)){document.getElementById('formerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}
+    if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save.','f-'+k);return;}
+    if(type==='tz'&&v&&!validTz(v)){showErr('Pick a time zone from the list, for example Asia/Dubai.','f-'+k);return;}
     out[k]=v;}
   if(item){data[kind]=data[kind].map(x=>x.id===item.id?out:x);}else data[kind].push(out);
   edit=null;draftPhotos={};if(save())toast('Saved');render();window.scrollTo(0,0);
