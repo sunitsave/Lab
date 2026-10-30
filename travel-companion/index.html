@@ -495,17 +495,16 @@ function itineraryView(){
   const today=dateIn(DEVICE_TZ);
   const days=data.days.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   let h=top('Itinerary','menu')+'<main>';
-  if(!days.length)h+=emptyRow('cal','Itinerary','days');
+  if(!days.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
   let prevHotel=null;
   days.forEach((d,i)=>{
     const ho=hotelById(d.hotelId);const changed=i>0&&d.hotelId&&prevHotel&&d.hotelId!==prevHotel;prevHotel=d.hotelId||prevHotel;
     const fl=data.flights.filter(f=>f.date===d.date);
     h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div>'+
       dayDetails(d,{hotelChanged:changed})+
-      fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+
-      '<button class="btn" style="min-height:48px;font-size:16px" data-act="editDay" data-id="'+d.id+'">'+ic('edit',20)+'Edit this day</button></div>';
+      fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+'</div>';
   });
-  h+='<a class="btn" href="#days">'+ic('edit',22)+'Edit itinerary</a></main>';
+  h+='</main>';
   return h;
 }
 
@@ -665,7 +664,6 @@ document.addEventListener('click',e=>{
   if(a==='openProfile'){profileOpen=true;render();const c=document.querySelector('.sheet .btn');if(c)c.focus();return;}
   if(a==='closeProfile'){if(e.target.closest('.sheet')&&b.classList.contains('overlay'))return;profileOpen=false;render();return;}
   if(a==='setUnit'){data.settings[b.dataset.k]=b.dataset.v;if(save())toast('Saved');render();return;}
-  if(a==='editDay'){go('days');edit={kind:'days',id:b.dataset.id};render();return;}
   if(a==='locGo'){locGo(b.dataset.to);return;}
   if(a==='locate'){live.locBusy=true;live.posErr=null;render();getPos().then(()=>{live.locBusy=false;toast('Location found');render();refreshWeather(true);}).catch(()=>{live.locBusy=false;render();});return;}
   if(a==='tourToggle'){tourOpen=!tourOpen;render();return;}
