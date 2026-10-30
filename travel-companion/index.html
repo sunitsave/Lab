@@ -65,6 +65,9 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .sugs button{min-height:52px;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:16px;cursor:pointer}
 .wxrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
 .temp{min-height:56px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 12px;color:var(--ink);cursor:pointer;white-space:nowrap}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.9s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.spin{animation-duration:3s}}
 .ferr{margin:0;color:var(--warn-ink);background:var(--warn-bg);border:2px solid var(--warn-line);border-radius:10px;padding:10px 12px;font-weight:700}
 .ferr:empty{display:none}
 .avbtn{padding:0;border:0;background:none;border-radius:50%;cursor:pointer;flex-shrink:0}
@@ -154,6 +157,7 @@ const P={
  bag:'<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+ fork:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11"/>',
  plus:'<path d="M12 5v14M5 12h14"/>', ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
  sliders:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
@@ -233,13 +237,13 @@ function fmtTemp(c){const f=data.settings&&data.settings.temp==='F';return Math.
 function gWeather(place){return 'https://www.google.com/search?q='+enc('weather '+(place||''));}
 function zoneWx(place){return '<a class="btn" style="min-height:44px;font-size:15px;padding:0 8px;border-width:1px" href="https://www.google.com/search?q='+enc('weather forecast '+place)+(data.settings.temp==='F'?'+fahrenheit':'')+'" target="_blank" rel="noopener" aria-label="Check weather forecast for '+esc(place)+'">Check weather</a>';}
 function wxButton(place,small){return '<a class="btn" style="'+(small?'min-height:48px;font-size:16px;padding:0 8px':'')+'" href="'+gWeather(place)+'" target="_blank" rel="noopener" aria-label="Weather alerts'+(place?' for '+esc(place):'')+' on Google">'+ic('alert',small?20:22)+(small?'Weather':'Weather alerts')+'</a>';}
+function locOff(){return !IN_FRAME&&(live.wxErr==='denied'||live.wxErr==='noloc'||live.posErr==='denied');}
 function weatherBlock(){
   const place=live.wx&&live.wx.src!=='your location'?live.wx.src:(live.place||'');
-  let temp='';
-  if(live.wx&&live.wx.temp!=null)temp='<span class="temp" role="img" aria-label="Temperature now '+fmtTemp(live.wx.temp)+'">'+ic('cloud',22)+fmtTemp(live.wx.temp)+'</span>';
-  else if(!IN_FRAME&&(live.wxErr==='denied'||live.wxErr==='noloc'||live.wxErr==='offline'))temp='<button class="temp" style="font-size:16px" data-act="wxRetry">'+ic('pin',20)+'Show temperature</button>';
-  else if(!IN_FRAME)temp='<span class="temp" style="font-size:16px;color:var(--muted)">…</span>';
-  return temp?'<div class="wxrow">'+temp+wxButton(place)+'</div>':wxButton(place);
+  if(locOff())return '';
+  if(live.wx&&live.wx.temp!=null)return '<div class="wxrow"><span class="temp" role="img" aria-label="Temperature now '+fmtTemp(live.wx.temp)+'">'+ic('cloud',22)+fmtTemp(live.wx.temp)+'</span>'+wxButton(place)+'</div>';
+  if(!IN_FRAME&&!live.wxErr)return wxButton(place)+'<span class="muted" style="font-size:15px" role="status"><span class="spin" aria-hidden="true"></span> Loading temperature…</span>';
+  return wxButton(place);
 }
 const IS_ANDROID=/Android/i.test(navigator.userAgent||'');
 const IN_FRAME=(()=>{try{return window.top!==window.self;}catch(e){return true;}})();
@@ -247,6 +251,7 @@ const TRANSLATE_HREF=IS_ANDROID&&!IN_FRAME?'intent:#Intent;action=android.intent
 
 /* ---------- location-first buttons ---------- */
 function openOut(url,t0){if(IN_FRAME){const l=document.createElement('a');l.href=url;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return;}if(Date.now()-t0<4500){let w=null;try{w=window.open(url,'_blank');}catch(e){}if(w){try{w.opener=null;}catch(e){}return;}} try{location.href=url;}catch(e){}}
+const PLACE_Q={police:'police+station',hospital:'hospital',pharmacy:'pharmacy',restaurant:'restaurants'};
 async function locGo(to){
   const t0=Date.now();live.locBusy=to;live.posErr=null;render();
   let pos=null;try{pos=await getPos(true);}catch(e){}
@@ -254,11 +259,11 @@ async function locGo(to){
   if(pos){refreshWeather(true);
     const ll=pos.lat.toFixed(5)+','+pos.lon.toFixed(5);
     if(to==='share'){const msg=(data.profile.name?data.profile.name+' – ':'')+'My current location: https://maps.google.com/?q='+ll;openOut('https://wa.me/?text='+enc(msg),t0);}
-    else openOut('https://www.google.com/maps/search/'+(to==='police'?'police+station':'hospital')+'/@'+pos.lat+','+pos.lon+',15z',t0);
+    else openOut('https://www.google.com/maps/search/'+PLACE_Q[to]+'/@'+pos.lat+','+pos.lon+',15z',t0);
     return;}
   if(to==='share'){toast('Your location could not be found, so nothing was shared. Allow location and try again.');return;}
   toast('Location not found. Opening Google Maps, which will use its own location.');
-  openOut('https://www.google.com/maps/search/'+(to==='police'?'police+station+near+me':'hospital+near+me'),t0);
+  openOut('https://www.google.com/maps/search/'+PLACE_Q[to]+'+near+me',t0);
 }
 
 /* ---------- address search: Google Places when a key is set, else OpenStreetMap ---------- */
@@ -288,7 +293,7 @@ function sample(){
   const t=dateIn(DEVICE_TZ);
   const h1=uid(),h2=uid();
   return {sample:true,settings:{temp:'C',dist:'km'},
-    profile:{name:'Asha Mehta',photo:'',nationality:'Indian'},
+    profile:{name:'Asha Mehta',photo:''},
     zones:[{label:'India',tz:'Asia/Kolkata',home:true},{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
     contacts:[{id:uid(),name:'Rahul Mehta',relation:'Son',phone:'+91 98200 12345',whatsapp:true},{id:uid(),name:'Tour manager – Priya',relation:'Tour manager',phone:'+971 50 123 4567',whatsapp:true}],
     group:{name:'Dubai–Turkey Seniors Tour',link:'https://chat.whatsapp.com/'},
@@ -323,7 +328,7 @@ let resetArmed=null;
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,3500);}
 
-const PARENT={units:'config',menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
+const PARENT={location:'menu',units:'config',menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
 function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
@@ -364,7 +369,7 @@ function homeView(){
   if(di.day&&di.set){dl='Daylight until '+fmtTime(DEVICE_TZ,di.set)+' · '+dur(di.set-now)+' left';}
   else if(!di.day&&di.rise){dl='Sunrise at '+fmtTime(DEVICE_TZ,di.rise);}
   const dn=di.day?'Day':'Night';
-  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+'</span><span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
+  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Location is off. Turn on Location to see temperature and weather alerts.</span>':'')+'</span><span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
      weatherBlock()+'</div>';
   const hz=data.zones.find(z=>z.home&&validTz(z.tz));
   if(hz){const hd=zoneDay(hz,now);const hn=hz.label||zoneName(hz.tz);
@@ -409,11 +414,11 @@ function homeView(){
   const busy=live.locBusy;
   const locBody='<div class="card">'+
     '<button class="btn primary" data-act="locGo" data-to="share"'+(busy?' disabled':'')+'>'+ic('chat',22)+(busy==='share'?'Finding your location…':'Share my location on WhatsApp')+'</button>'+
-    '<div class="grid2"><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="police"'+(busy?' disabled':'')+'>'+ic('shield',22)+(busy==='police'?'Finding…':'Police nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="hospital"'+(busy?' disabled':'')+'>'+ic('cross',22)+(busy==='hospital'?'Finding…':'Hospital nearby')+'</button></div>'+
+    '<div class="grid2"><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="police"'+(busy?' disabled':'')+'>'+ic('shield',22)+(busy==='police'?'Finding…':'Police nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="hospital"'+(busy?' disabled':'')+'>'+ic('cross',22)+(busy==='hospital'?'Finding…':'Hospital nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="pharmacy"'+(busy?' disabled':'')+'>'+ic('pill',22)+(busy==='pharmacy'?'Finding…':'Pharmacy nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="restaurant"'+(busy?' disabled':'')+'>'+ic('fork',22)+(busy==='restaurant'?'Finding…':'Restaurant nearby')+'</button></div>'+
     (live.posErr==='denied'?'<div class="warn">'+ic('alert')+'<span>Location is blocked for this app. Tap the lock icon next to the web address and allow Location.</span></div>':'')+
     (live.posErr==='unavailable'?'<div class="warn">'+ic('alert')+'<span>Your location could not be found. Turn on Location on the phone and try again.</span></div>':'')+
     '<p class="muted" style="margin:0;font-size:15px">Each button finds where you are right now first.</p></div>';
-  h+=section('loc','pin','Where I am now','Share location · Police · Hospital',3,locBody);
+  h+=section('loc','pin','Where I am now','Share location · Police · Hospital · Pharmacy · Restaurant',5,locBody);
 
   /* Tomorrow */
   if(nday){
@@ -439,23 +444,27 @@ function homeView(){
   h+='</main>';
   if(profileOpen){
     h+='<div class="overlay" data-act="closeProfile"><div class="sheet" role="dialog" aria-modal="true" aria-label="My profile">'+(p.photo?'<img class="bigav" alt="" src="'+esc(p.photo)+'">':'<span class="bigav">'+ic('user',72)+'</span>')+
-      '<b style="font-size:26px">'+esc(p.name||'Traveller')+'</b>'+(p.nationality?'<span style="font-size:18px">Nationality: <b>'+esc(p.nationality)+'</b></span>':'<span class="muted">Nationality not set</span>')+
-      '<a class="btn primary" href="#profile">'+ic('edit',22)+'Edit profile</a><button type="button" class="btn" data-act="closeProfile">Close</button></div></div>';
+      '<b style="font-size:26px">'+esc(p.name||'Traveller')+'</b>'+'<button type="button" class="btn" data-act="closeProfile">Close</button></div></div>';
   }
   return h;
 }
-function dayCard(d,isToday,hotelChanged){
-  const ho=hotelById(d.hotelId);
-  let b='<div class="card">';
-  b+='<div><b style="font-size:22px">'+esc(d.place)+'</b>'+(d.location?'<br><span class="muted">'+esc(d.location)+'</span>':'')+'</div>';
-  if(d.location)b+='<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination='+enc(d.location)+'" target="_blank" rel="noopener">'+ic('pin',22)+'Directions</a>';
-  if(d.ticket)b+='<div class="note"><span class="label">'+'Ticket suggestion</span><span>'+esc(d.ticket)+'</span></div>';
-  if(d.clothes||d.clothesPhoto)b+='<div class="row">'+photoBox(d.clothesPhoto,'80px','80px','Outfit')+'<span class="grow"><span class="label">Wear</span><br>'+esc(d.clothes)+'</span></div>';
-  if(d.accessories)b+='<div class="row">'+ic('bag',26)+'<span class="grow"><span class="label">Carry</span><br>'+esc(d.accessories)+'</span></div>';
+/* shows exactly what the day form captures, in the form's order:
+   Date, Place, Location, Ticket suggestion, Important notes, Clothes (+outfit photo), Accessories, Hotel */
+function dayDetails(d,opts){
+  opts=opts||{};const ho=hotelById(d.hotelId);
+  let b='<div><b style="font-size:22px">'+esc(d.place)+'</b>'+(d.location?'<br><span class="muted">'+esc(d.location)+'</span>':'')+'</div>';
+  if(d.location&&opts.actions)b+='<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination='+enc(d.location)+'" target="_blank" rel="noopener">'+ic('pin',22)+'Directions</a>';
+  if(d.ticket)b+='<div class="note"><span class="label">Ticket suggestion</span><span>'+esc(d.ticket)+'</span></div>';
   if(d.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(d.notes)+'</span></div>';
+  if(d.clothes||d.clothesPhoto)b+='<div class="row">'+(d.clothesPhoto?photoBox(d.clothesPhoto,'80px','80px','Outfit'):ic('shirt',26))+'<span class="grow"><span class="label">Wear</span><br>'+esc(d.clothes)+'</span></div>';
+  if(d.accessories)b+='<div class="row">'+ic('bag',26)+'<span class="grow"><span class="label">Carry</span><br>'+esc(d.accessories)+'</span></div>';
   if(ho){
-    b+='<div class="'+(hotelChanged?'warn':'note')+'" style="flex-direction:column;gap:8px"><span class="label" style="color:inherit">'+(hotelChanged?'Hotel changes tomorrow':'Hotel')+'</span><span><b style="font-size:19px">'+esc(ho.name)+'</b><br>'+esc(ho.address)+'</span>'+(ho.phone?'<span>'+esc(ho.phone)+'</span><a class="btn primary" href="'+telHref(ho.phone)+'">'+ic('phone',22)+'Call hotel</a>':'')+'</div>';
+    b+='<div class="'+(opts.hotelChanged?'warn':'note')+'" style="flex-direction:column;gap:8px"><span class="label" style="color:inherit">'+(opts.hotelChanged?(opts.tomorrow?'Hotel changes tomorrow':'Hotel changes'):'Hotel')+'</span><span><b style="font-size:19px">'+esc(ho.name)+'</b>'+(ho.address?'<br>'+esc(ho.address):'')+'</span>'+(ho.phone?'<span>'+esc(ho.phone)+'</span>'+(opts.actions?'<a class="btn primary" href="'+telHref(ho.phone)+'">'+ic('phone',22)+'Call hotel</a>':''):'')+'</div>';
   }
+  return b;
+}
+function dayCard(d,isToday,hotelChanged){
+  let b='<div class="card">'+dayDetails(d,{actions:true,hotelChanged,tomorrow:!isToday});
   if(isToday)b+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';
   return b+'</div>';
 }
@@ -471,7 +480,7 @@ function flightCard(f,now){
 
 /* ---------- MENU ---------- */
 function menuView(){
-  const sub=[['tour','mobile','App tour','Learn this app step by step'],['wifi','wifi','Wi-Fi connection','Join hotel or café Wi-Fi'],['network','signal','Phone network connection','Roaming, SIM and mobile data'],['inflight','plane','In-flight network connection','Connect to Wi-Fi on the plane'],['translate','translate','Translate','Google Translate: speak, type, camera']];
+  const sub=[['tour','mobile','App tour','Learn this app step by step'],['location','pin','Location: turn on and share','Phone location and sharing where you are'],['wifi','wifi','Wi-Fi connection','Join hotel or café Wi-Fi'],['network','signal','Phone network connection','Roaming, SIM and mobile data'],['inflight','plane','In-flight network connection','Connect to Wi-Fi on the plane'],['translate','translate','Translate','Google Translate: speak, type, camera']];
   let h='<div class="top"><a class="iconbtn" href="#home" aria-label="Close menu">'+ic('close')+'</a><h1>Menu</h1></div><main><nav class="navlist" aria-label="Main menu">';
   h+='<button type="button" class="navitem" data-act="tourToggle" aria-expanded="'+tourOpen+'">'+ic('compass',28)+'<span class="grow"><span class="t">Guide</span><span class="s">Step-by-step help</span></span>'+ic(tourOpen?'up':'down',22)+'</button>';
   if(tourOpen)h+='<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 12px 12px;border-bottom:1px solid var(--line)">'+sub.map(s=>'<a class="subitem" href="#'+s[0]+'">'+ic(s[1],24)+'<span class="grow"><span class="t">'+s[2]+'</span><span class="s">'+s[3]+'</span></span>'+ic('chev',22)+'</a>').join('')+'</div>';
@@ -491,10 +500,10 @@ function itineraryView(){
   days.forEach((d,i)=>{
     const ho=hotelById(d.hotelId);const changed=i>0&&d.hotelId&&prevHotel&&d.hotelId!==prevHotel;prevHotel=d.hotelId||prevHotel;
     const fl=data.flights.filter(f=>f.date===d.date);
-    h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div><b style="font-size:22px">'+esc(d.place)+'</b>'+(d.location?'<span class="muted">'+esc(d.location)+'</span>':'')+
-      (d.ticket?'<span><b>Ticket:</b> '+esc(d.ticket)+'</span>':'')+
-      (ho?'<span'+(changed?' class="warn" style="padding:8px 10px;border-width:1px"':'')+'><b>'+(changed?'Hotel changes: ':'Hotel: ')+'</b>'+esc(ho.name)+'</span>':'')+
-      fl.map(f=>'<span><b>Flight:</b> '+esc(f.number+' '+f.from+' → '+f.to+', '+f.time)+'</span>').join('')+'</div>';
+    h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div>'+
+      dayDetails(d,{hotelChanged:changed})+
+      fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+
+      '<button class="btn" style="min-height:48px;font-size:16px" data-act="editDay" data-id="'+d.id+'">'+ic('edit',20)+'Edit this day</button></div>';
   });
   h+='<a class="btn" href="#days">'+ic('edit',22)+'Edit itinerary</a></main>';
   return h;
@@ -504,7 +513,7 @@ function itineraryView(){
 function configView(){
   const row=(r,i,t,s)=>'<a class="navitem" href="#'+r+'">'+ic(i,28)+'<span class="grow"><span class="t">'+t+'</span><span class="s">'+s+'</span></span>'+ic('chev',22)+'</a>';
   return top('Configuration','menu')+'<main><nav class="navlist" aria-label="Configuration">'+
-   '<div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name, photo, nationality')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+row('units','sliders','Units','Temperature '+(data.settings.temp==='F'?'°F':'°C')+' · distance '+(data.settings.dist==='mi'?'miles':'kilometres'))+
+   '<div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name and photo')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+row('units','sliders','Units','Temperature '+(data.settings.temp==='F'?'°F':'°C')+' · distance '+(data.settings.dist==='mi'?'miles':'kilometres'))+
    '<div class="grouplabel">TRIP</div>'+row('days','cal','Itinerary days',data.days.length+' days · tickets, clothes, accessories')+row('hotels','bed','Hotels',data.hotels.length+' hotels')+row('flights','plane','Flights',data.flights.length+' flights')+
    '<div class="grouplabel">SAFETY</div>'+row('meds','pill','Critical medication',data.meds.length+' medicines · allergies')+row('contacts','phone','Emergency contacts',data.contacts.length+' contacts')+row('group','group','Tour WhatsApp group',data.group.link?'Link added':'No link yet')+
    '<div class="grouplabel">BACKUP</div>'+row('backup','dl','Export / Import','Save or load a .zip with data and photos')+
@@ -567,7 +576,7 @@ function profileView(){
   const p=data.profile;const cur='photo' in draftPhotos?draftPhotos.photo:p.photo;
   let h=top('Profile','config')+'<main><form data-form="profile" class="card"><span class="label">My profile</span><div class="row">'+(cur?'<img class="avatar" style="width:88px;height:88px" alt="" src="'+esc(cur)+'">':'<div class="avatar" style="width:88px;height:88px">'+ic('user',36)+'</div>')+
    '<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="f-photo">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="f-photo" data-photo="photo" hidden>'+(cur?'<button type="button" class="btn" data-act="rmPhoto" data-key="photo">Remove photo</button>':'')+'</span></div>'+
-   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<input id="f-nat" value="'+esc(p.nationality)+'" placeholder="e.g. Indian"></label><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
+   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
   return h;
 }
 function unitsView(){
@@ -608,6 +617,7 @@ function tourView(){
   return top('App tour','menu')+'<main><div class="step" aria-hidden="true">'+TOUR.map((_,i)=>'<i class="'+(i<=tourStep?'on':'')+'"></i>').join('')+'</div><div class="card strong" style="min-height:260px;justify-content:center;align-items:flex-start">'+ic(s[0],48)+'<span class="muted">Step '+(tourStep+1)+' of '+TOUR.length+'</span><b style="font-size:26px">'+s[1]+'</b><p style="margin:0;font-size:20px">'+s[2]+'</p></div><div class="grid2"><button class="btn" data-act="tourPrev"'+(tourStep===0?' disabled style="opacity:.5"':'')+'>Back</button>'+(tourStep<TOUR.length-1?'<button class="btn primary" data-act="tourNext">Next</button>':'<a class="btn primary" href="#home">Finish</a>')+'</div></main>';
 }
 const HELP={
+ location:['Location: turn on and share','pin',['Turn on phone location: swipe down from the top of the screen and tap Location so it is highlighted. If you do not see it, swipe down once more.','Allow this app to use location: in Chrome, tap the lock icon next to the web address, tap Permissions, then set Location to Allow.','Come back to the app. The temperature and weather alerts appear on the home screen within a few seconds.','Share where you are: on the home screen open Where I am now and tap Share my location on WhatsApp. Pick a person or the tour group and tap Send.','To share live location from WhatsApp itself: open the chat, tap the paperclip, tap Location, then Share live location and choose for how long.'],'Live location keeps updating for the time you choose, so family can follow you. Stop it from the same chat when you no longer need it.'],
  wifi:['Wi-Fi connection','wifi',['Ask the hotel reception for the Wi-Fi name and password. It is often printed on the room key card.','Swipe down from the top of the screen and press and hold the Wi-Fi icon.','Tap the network with the hotel name, type the password, then tap Connect.','If a hotel page opens in the browser, enter your room number and surname to finish.'],'Avoid banking on open café Wi-Fi.'],
  network:['Phone network connection','signal',['Before you fly, check with your mobile company that international roaming is switched on for your number.','Abroad, open Settings, then Network & internet, then SIMs, and turn on Roaming.','If you bought a local SIM or eSIM, select it for Mobile data in the same SIMs screen.','Restart the phone if there is no signal after landing.'],'Roaming data can be costly. Turn Roaming off when you are on hotel Wi-Fi.'],
  inflight:['In-flight network connection','plane',['Switch on Aeroplane mode when the crew asks.','Turn Wi-Fi back on: swipe down and tap the Wi-Fi icon. Aeroplane mode stays on.','Choose the airline network (for example OnAir or the airline name).','Open the browser. The airline page opens; pick the free messaging plan or buy a plan.'],'Not every flight has Wi-Fi. Check the seat card or ask the crew.'],
@@ -639,6 +649,7 @@ function render(){
   app.innerHTML='<div class="app-inner">'+h+'</div>';
 }
 window.addEventListener('online',()=>refreshWeather(true));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&(locOff()||live.wxErr))refreshWeather(true);});
 window.addEventListener('popstate',()=>{let r='home';try{r=(location.hash||'').slice(1);}catch(e){}go(r,true);});
 window.addEventListener('hashchange',()=>{let r='home';try{r=(location.hash||'').slice(1);}catch(e){}if(valid(r)!==cur)go(r,true);});
 /* in-app navigation: handle every #route link ourselves so it works inside any viewer */
@@ -654,6 +665,7 @@ document.addEventListener('click',e=>{
   if(a==='openProfile'){profileOpen=true;render();const c=document.querySelector('.sheet .btn');if(c)c.focus();return;}
   if(a==='closeProfile'){if(e.target.closest('.sheet')&&b.classList.contains('overlay'))return;profileOpen=false;render();return;}
   if(a==='setUnit'){data.settings[b.dataset.k]=b.dataset.v;if(save())toast('Saved');render();return;}
+  if(a==='editDay'){go('days');edit={kind:'days',id:b.dataset.id};render();return;}
   if(a==='locGo'){locGo(b.dataset.to);return;}
   if(a==='locate'){live.locBusy=true;live.posErr=null;render();getPos().then(()=>{live.locBusy=false;toast('Location found');render();refreshWeather(true);}).catch(()=>{live.locBusy=false;render();});return;}
   if(a==='tourToggle'){tourOpen=!tourOpen;render();return;}
@@ -692,7 +704,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&profileOpen){profil
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('form[data-form] input:not([type=checkbox]):not([type=file])'))return;e.preventDefault();handleSubmit(e.target.closest('form[data-form]'));});
 function handleSubmit(form){
   const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
-  if(kind==='profile'){data.profile.name=val('f-name');data.profile.nationality=val('f-nat');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
+  if(kind==='profile'){data.profile.name=val('f-name');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
   if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}const nz={label:val('z-label')||zoneName(tz),tz};if(document.getElementById('z-home').checked){data.zones.forEach(z=>z.home=false);nz.home=true;}data.zones.push(nz);if(save())toast('Time zone added');render();geocode(nz.label).then(c=>{if(c){nz.lat=c[0];nz.lon=c[1];save();render();}});return;}
   if(kind==='allergies'){data.allergies={food:val('al-food'),medication:val('al-med')};if(save())toast('Allergies saved');render();return;}
   if(kind==='group'){const l=val('g-link');if(l&&!/^https:\/\//.test(l)){document.getElementById('gerr').textContent='The link should start with https://';return;}data.group={name:val('g-name'),link:l};if(save())toast('Group saved');render();return;}
