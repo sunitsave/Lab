@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.21';
+const BUILD='UAT build 0.22';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -613,7 +613,7 @@ function upcomingDays(){const t=dateIn(DEVICE_TZ);return data.days.filter(d=>d.d
 function upcomingFlights(){const t=dateIn(DEVICE_TZ);return data.flights.filter(f=>f.date>=t).sort((a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));}
 function shareText(){
   const sel=shareSel,L=[];const p=data.profile;
-  L.push('*Critical travel info'+(p.name?' – '+p.name:'')+'*');
+  L.push('*Travel info'+(p.name?' – '+p.name:'')+'*');
   if(sel.profile){if(p.name)L.push('Name: '+p.name);if(p.nationality)L.push('Nationality: '+p.nationality);}
   if(sel.contacts&&data.contacts.length){L.push('','*Emergency contacts*');data.contacts.forEach(c=>L.push('• '+c.name+(c.relation?' ('+c.relation+')':'')+': '+c.phone));}
   if(sel.meds){const al=data.allergies;if(data.meds.length||al.food||al.medication){L.push('','*Critical medicines*');
