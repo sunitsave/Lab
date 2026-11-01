@@ -127,7 +127,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.16';
+const BUILD='UAT build 0.17';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -408,10 +408,6 @@ function homeView(){
     h+=section('meds','pill','Critical medication',data.meds.length+' medicine'+(data.meds.length===1?'':'s')+' · '+al.length+' allerg'+(al.length===1?'y':'ies'),mc,body);
   } else missing.push('Critical medication');
 
-  /* Today */
-  if(tday){h+=section('itin','cal',"Today's itinerary",esc(tday.place),1,dayCard(tday,true));}
-  else notToday.push(data.days.length?"Today's itinerary (nothing planned for today)":"Itinerary (no days added)");
-
   /* Location */
   const busy=live.locBusy;
   const locBody='<div class="card">'+
@@ -422,11 +418,9 @@ function homeView(){
     '<p class="muted" style="margin:0;font-size:15px">Each button finds where you are right now first.</p></div>';
   h+=section('loc','pin','Where I am now','Share location · Police · Hospital · Pharmacy · Restaurant',5,locBody);
 
-  /* Tomorrow */
-  if(nday){
-    const changed=tday&&nday.hotelId&&tday.hotelId!==nday.hotelId;
-    h+=section('tom','calnext','Tomorrow',esc(nday.place)+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),1,dayCard(nday,false,changed));
-  } else if(data.days.length) notToday.push('Tomorrow (nothing planned)');
+  /* Today */
+  if(tday){h+=section('itin','cal',"Today's itinerary",esc(tday.place),1,dayCard(tday,true));}
+  else notToday.push(data.days.length?"Today's itinerary (nothing planned for today)":"Itinerary (no days added)");
 
   /* Flight */
   const fl=data.flights.filter(f=>f.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
@@ -435,6 +429,12 @@ function homeView(){
     const sub=esc(f0.number)+(dep?(dep>now?' · leaves in '+dur(dep-now):' · departed'):'');
     h+=section('flight','plane',"Today's flight",sub,fl.length,'<div style="display:flex;flex-direction:column;gap:12px">'+fl.map(f=>flightCard(f,now)).join('')+'</div>');
   } else notToday.push("Today's flight (no flight today)");
+
+  /* Tomorrow */
+  if(nday){
+    const changed=tday&&nday.hotelId&&tday.hotelId!==nday.hotelId;
+    h+=section('tom','calnext','Tomorrow',esc(nday.place)+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),1,dayCard(nday,false,changed));
+  } else if(data.days.length) notToday.push('Tomorrow (nothing planned)');
 
   /* Summary */
   const lines=[];
