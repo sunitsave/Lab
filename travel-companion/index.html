@@ -127,7 +127,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.15';
+const BUILD='UAT build 0.16';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -175,6 +175,8 @@ function enc(s){return encodeURIComponent(s||'');}
 const DEVICE_TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Kolkata'}catch(e){return 'Asia/Kolkata'}})();
 function validTz(tz){try{new Intl.DateTimeFormat('en',{timeZone:tz});return true}catch(e){return false}}
 function fmtTime(tz,d){return new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',hour12:false}).format(d||new Date());}
+function dayDate(tz,d){return new Intl.DateTimeFormat('en-GB',{timeZone:tz,weekday:'short',day:'numeric',month:'short'}).format(d||new Date());}
+function tstack(timeHtml,tz,now,align){return '<span style="display:flex;flex-direction:column;align-items:'+(align||'flex-end')+';line-height:1.15">'+timeHtml+'<span class="muted" style="font-size:14px;font-weight:400">'+dayDate(tz,now)+'</span></span>';}
 function dateIn(tz,d){return new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).format(d||new Date());}
 function hourIn(tz,d){return +new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',hour12:false}).format(d||new Date())%24;}
 function addDays(ds,n){const [y,m,d]=ds.split('-').map(Number);const t=new Date(Date.UTC(y,m-1,d+n));return t.toISOString().slice(0,10);}
@@ -369,17 +371,17 @@ function homeView(){
   if(di.day&&di.set){dl='Daylight until '+fmtTime(DEVICE_TZ,di.set)+' · '+dur(di.set-now)+' left';}
   else if(!di.day&&di.rise){dl='Sunrise at '+fmtTime(DEVICE_TZ,di.rise);}
   const dn=di.day?'Day':'Night';
-  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Turn on Location to see temperature and weather alerts</span>':'')+'</span><span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span></div>'+
+  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Turn on Location to see temperature and weather alerts</span>':'')+'</span>'+tstack('<span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span>',DEVICE_TZ,now)+'</div>'+
      weatherBlock()+'</div>';
   const hz=data.zones.find(z=>z.home&&validTz(z.tz));
   if(hz){const hd=zoneDay(hz,now);const hn=hz.label||zoneName(hz.tz);
-    h+='<div class="card" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span><span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span><span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
+    h+='<div class="card" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span>'+tstack('<span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span>',hz.tz,now,'flex-start')+'<span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
   h+='</section>';
 
   /* Other zones */
   const zs=data.zones.filter(z=>validTz(z.tz)&&!z.home);
   if(zs.length){
-    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);const n=z.label||zoneName(z.tz);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span><span class="t">'+fmtTime(z.tz,now)+'</span></div><b style="overflow-wrap:anywhere">'+esc(n)+'</b>'+zoneWx(n)+'</div>'}).join('')+'</div>';
+    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);const n=z.label||zoneName(z.tz);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span>'+tstack('<span class="t">'+fmtTime(z.tz,now)+'</span>',z.tz,now,'flex-start')+'</div><b style="overflow-wrap:anywhere">'+esc(n)+'</b>'+zoneWx(n)+'</div>'}).join('')+'</div>';
     h+=section('zones','globe','Other time zones',esc(zs.map(z=>z.label||zoneName(z.tz)).join(' · ')),zs.length,body);
   } else missing.push('Other time zones');
 
