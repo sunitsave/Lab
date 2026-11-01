@@ -11,19 +11,19 @@
 <style>
 /* Layout: one phone-width column, big type and big targets for senior travellers; sections collapse to a header with a count. */
 :root{
-  --bg:#FFFFFF; --panel:#F3F3F1; --line:#D6D6D2; --ink:#1A1A1A; --muted:#4F4F4B;
+  --bg:#FFFFFF; --surface:#FFFFFF; --panel:#F3F3F1; --line:#D6D6D2; --ink:#1A1A1A; --muted:#4F4F4B;
   --accent:#1F5FAD; --accent-ink:#FFFFFF; --warn-bg:#FFF1D6; --warn-ink:#5C3200; --warn-line:#8A4B00;
   --sun:#8A4B00; --moon:#1F3A6B; --chip:#E4E4E0;
   --font:'Atkinson Hyperlegible', 'Segoe UI', Roboto, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#141412; --panel:#1F1F1C; --line:#3A3A36; --ink:#F2F2EE; --muted:#B9B9B2;
+  --bg:#0E0E0E; --surface:#242424; --panel:#2E2E2E; --line:#4A4A4A; --ink:#F2F2EE; --muted:#BDBDB6;
   --accent:#7FB0F0; --accent-ink:#0B1A2E; --warn-bg:#3A2A10; --warn-ink:#FFD9A0; --warn-line:#D99A3A;
-  --sun:#F0B860; --moon:#A9C4F5; --chip:#2E2E2A; color-scheme:dark}}
+  --sun:#F0B860; --moon:#A9C4F5; --chip:#3A3A3A; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#141412; --panel:#1F1F1C; --line:#3A3A36; --ink:#F2F2EE; --muted:#B9B9B2;
+  --bg:#0E0E0E; --surface:#242424; --panel:#2E2E2E; --line:#4A4A4A; --ink:#F2F2EE; --muted:#BDBDB6;
   --accent:#7FB0F0; --accent-ink:#0B1A2E; --warn-bg:#3A2A10; --warn-ink:#FFD9A0; --warn-line:#D99A3A;
-  --sun:#F0B860; --moon:#A9C4F5; --chip:#2E2E2A; color-scheme:dark}
+  --sun:#F0B860; --moon:#A9C4F5; --chip:#3A3A3A; color-scheme:dark}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--font);font-size:18px;line-height:1.35;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 32px}
 .app{max-width:520px;margin:0 auto;display:flex;flex-direction:column}
@@ -48,23 +48,23 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .big{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
 .label{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .muted{color:var(--muted);font-size:16px}
-.note{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
 .warn{background:var(--warn-bg);color:var(--warn-ink);border:2px solid var(--warn-line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .zone{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .zone .t{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
-.btn{min-height:56px;border-radius:12px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;text-decoration:none;cursor:pointer;text-align:center}
+.btn{min-height:56px;border-radius:12px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;text-decoration:none;cursor:pointer;text-align:center}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.danger{border-color:var(--warn-line);color:var(--warn-ink);background:var(--warn-bg)}
 .sec{display:flex;flex-direction:column;gap:12px}
-.sechead{min-height:72px;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);text-align:left;cursor:pointer}
+.sechead{min-height:72px;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);text-align:left;cursor:pointer}
 .sechead .t{font-size:21px;font-weight:700;display:block}
 .sechead .s{font-size:15px;color:var(--muted);display:block;overflow-wrap:anywhere}
 .badge{min-width:26px;height:26px;padding:0 7px;box-sizing:border-box;border-radius:13px;background:var(--chip);color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
 .sugs{display:flex;flex-direction:column;gap:6px}
 .sugs button{min-height:52px;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:16px;cursor:pointer}
 .wxrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px}
-.temp{min-height:56px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 12px;color:var(--ink);cursor:pointer;white-space:nowrap}
+.temp{min-height:56px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:6px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 12px;color:var(--ink);cursor:pointer;white-space:nowrap}
 .spin{display:inline-block;width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 0.9s linear infinite;vertical-align:-3px}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.spin{animation-duration:3s}}
@@ -76,6 +76,10 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .sheet .bigav{width:180px;height:180px;border-radius:50%;object-fit:cover;border:3px solid var(--ink);background:var(--chip);display:flex;align-items:center;justify-content:center;color:var(--muted)}
 .sheet .btn{width:100%;box-sizing:border-box}
 .sechead{scroll-margin-top:92px}
+.sec.open{border:2px solid var(--ink);border-radius:14px;background:var(--surface);gap:0;overflow:hidden}
+.sec.open>.sechead{border:0;border-bottom:1px solid var(--line);border-radius:0}
+.secbody{padding:12px;display:flex;flex-direction:column;gap:12px}
+.sync{font-size:15px;color:var(--muted);display:flex;align-items:center;gap:8px}
 .summary{margin-top:8px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
 .summary b{color:var(--ink)}
 .seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -83,7 +87,7 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .empty{min-height:64px;display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;border:2px dashed var(--muted);color:var(--muted);text-decoration:none}
 .empty b{color:var(--ink);font-size:17px;display:block}
-.tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);color:var(--ink);text-decoration:none;min-width:0}
+.tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);text-decoration:none;min-width:0}
 .tile b{font-size:18px;line-height:1.2}
 .tile span{font-size:14px;color:var(--muted)}
 .ph{border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;overflow:hidden;flex-shrink:0}
@@ -127,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.17';
+const BUILD='UAT build 0.18';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -193,7 +197,7 @@ function dayInfo(tz,now,ll){const c=ll||COORDS[tz]||[20,tzOffsetMin(tz,now)/4];i
 
 
 /* ---------- live data: GPS + weather alerts (work when hosted on https; blocked inside the Claude preview) ---------- */
-const live={place:null,placeFor:null,pos:null,posErr:null,posAt:0,wx:null,wxErr:null,wxAt:0,wxBusy:false};
+const live={syncAt:(()=>{try{return +localStorage.getItem('travelCompanion.v1.sync')||0;}catch(e){return 0;}})(),place:null,placeFor:null,pos:null,posErr:null,posAt:0,wx:null,wxErr:null,wxAt:0,wxBusy:false};
 function getPos(fresh){return new Promise((res,rej)=>{if(!('geolocation' in navigator)){rej(new Error('nogeo'));return;}navigator.geolocation.getCurrentPosition(p=>{live.pos={lat:p.coords.latitude,lon:p.coords.longitude,acc:Math.round(p.coords.accuracy)};live.posAt=Date.now();live.posErr=null;res(live.pos);},e=>{live.posErr=e&&e.code===1?'denied':'unavailable';rej(e);},{enableHighAccuracy:true,timeout:12000,maximumAge:fresh?0:60000});});}
 /* place name for the GPS position (free reverse-geocoding service; no key needed) */
 async function placeName(lat,lon){
@@ -221,7 +225,7 @@ function deriveAlerts(j){
   return seen.xheat?out.filter(x=>!/^High heat/.test(x)):out;
 }
 async function refreshWeather(force){
-  if(live.wxBusy)return;if(!force&&live.wxAt&&Date.now()-live.wxAt<30*60000)return;
+  if(live.wxBusy)return;if(!force&&live.wxAt&&Date.now()-live.wxAt<5*60000)return;
   live.wxBusy=true;
   let lat,lon;
   try{const p=await getPos();lat=p.lat;lon=p.lon;}
@@ -231,7 +235,7 @@ async function refreshWeather(force){
     const url='https://api.open-meteo.com/v1/forecast?latitude='+lat.toFixed(3)+'&longitude='+lon.toFixed(3)+'&current=temperature_2m&timezone=auto';
     const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('http');
     const j=await r.json();
-    live.wx={temp:j.current&&j.current.temperature_2m,src};live.wxErr=null;
+    live.wx={temp:j.current&&j.current.temperature_2m,src};live.wxErr=null;live.syncAt=Date.now();try{localStorage.setItem(KEY+'.sync',String(live.syncAt));}catch(e){}
   }catch(e){live.wxErr='offline';}
   live.wxAt=Date.now();live.wxBusy=false;if(route()==='home')render();
 }
@@ -347,7 +351,7 @@ function telHref(p){return 'tel:'+(p||'').replace(/[^\d+]/g,'');}
 function emptyRow(icon,title,to){return '<a class="empty" href="#'+to+'">'+ic(icon,24)+'<span class="grow"><b>'+esc(title)+': nothing added</b>Add it from Configuration</span>'+ic('plus',22)+'</a>';}
 function section(key,icon,title,sub,count,body){
   const o=!!open[key];
-  return '<section class="sec"><button type="button" class="sechead" data-act="toggle" data-key="'+key+'" aria-expanded="'+o+'">'+ic(icon)+'<span class="grow"><span class="t">'+esc(title)+'</span><span class="s">'+sub+'</span></span><span class="badge" aria-label="'+count+' items">'+count+'</span>'+ic(o?'up':'down',24)+'</button>'+(o?body:'')+'</section>';
+  return '<section class="sec'+(o?' open':'')+'"><button type="button" class="sechead" data-act="toggle" data-key="'+key+'" aria-expanded="'+o+'">'+ic(icon)+'<span class="grow"><span class="t">'+esc(title)+'</span><span class="s">'+sub+'</span></span><span class="badge" aria-label="'+count+' items">'+count+'</span>'+ic(o?'up':'down',24)+'</button>'+(o?'<div class="secbody">'+body+'</div>':'')+'</section>';
 }
 function hotelById(id){return data.hotels.find(h=>h.id===id);}
 function dayFor(ds){return data.days.find(d=>d.date===ds);}
@@ -442,6 +446,9 @@ function homeView(){
   if(notToday.length)lines.push('<span><b>Not shown today:</b> '+notToday.map(esc).join(' · ')+'</span>');
   if(missing.length)lines.push('<span><b>Not set up:</b> '+missing.map(esc).join(' · ')+'</span>');
   if(lines.length)h+='<div class="summary" role="note">'+lines.join('')+'</div>';
+  if(!IN_FRAME&&(navigator.onLine===false||live.wxErr==='offline')){
+    const t=live.syncAt?new Date(live.syncAt):null;
+    h+='<p class="sync" role="status">'+ic('wifi',18)+'<span>No network. '+(t?'Last updated '+fmtTime(DEVICE_TZ,t)+', '+dayDate(DEVICE_TZ,t):'Not updated yet')+'.</span></p>';}
 
   h+='</main>';
   if(profileOpen){
@@ -825,7 +832,8 @@ function doImport(){
 /* ---------- start ---------- */
 render();
 refreshWeather();
-setInterval(()=>refreshWeather(),30*60000);
+setInterval(()=>{refreshWeather(true);if(route()==='home'&&!document.activeElement.matches('input,textarea,select'))render();},5*60000);
+window.addEventListener('offline',()=>{if(route()==='home')render();});
 setInterval(()=>{if(route()==='home'&&!document.activeElement.matches('input,textarea,select'))render();},30000);
 })();
 </script>
