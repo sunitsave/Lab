@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.20';
+const BUILD='UAT build 0.21';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -500,7 +500,7 @@ function menuView(){
   h+='<button type="button" class="navitem" data-act="tourToggle" aria-expanded="'+tourOpen+'">'+ic('compass',28)+'<span class="grow"><span class="t">Guide</span><span class="s">Step-by-step help</span></span>'+ic(tourOpen?'up':'down',22)+'</button>';
   if(tourOpen)h+='<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 12px 12px;border-bottom:1px solid var(--line)">'+sub.map(s=>'<a class="subitem" href="#'+s[0]+'">'+ic(s[1],24)+'<span class="grow"><span class="t">'+s[2]+'</span><span class="s">'+s[3]+'</span></span>'+ic('chev',22)+'</a>').join('')+'</div>';
   h+='<a class="navitem" href="#itinerary">'+ic('cal',28)+'<span class="grow"><span class="t">View itinerary</span></span>'+ic('chev',22)+'</a>';
-  h+='<a class="navitem" href="#share">'+ic('chat',28)+'<span class="grow"><span class="t">Send critical info</span><span class="s">Share key details on WhatsApp</span></span>'+ic('chev',22)+'</a>';
+  h+='<a class="navitem" href="#share">'+ic('chat',28)+'<span class="grow"><span class="t">Send Info</span><span class="s">Share key details on WhatsApp</span></span>'+ic('chev',22)+'</a>';
   h+='<a class="navitem" href="#config">'+ic('sliders',28)+'<span class="grow"><span class="t">Configuration</span><span class="s">Trip, safety, profile, backup</span></span>'+ic('chev',22)+'</a>';
   h+='</nav><p class="foot">'+BUILD+' · All data is saved on this phone only.</p></main>';
   return h;
@@ -629,7 +629,7 @@ function shareView(){
   if(!shareSel){shareSel={};SHARE_SECS.forEach(x=>{shareSel[x[0]]=x[3]()>0;});}
   const n=SHARE_SECS.filter(x=>shareSel[x[0]]&&x[3]()>0).length;
   const txt=shareText();
-  return top('Send critical info','menu')+'<main><div class="card"><span class="label">Include</span>'+
+  return top('Send Info','menu')+'<main><div class="card"><span class="label">Include</span>'+
    SHARE_SECS.map(([k,t,sub,cnt])=>{const c=cnt();return '<label class="chk" style="align-items:flex-start;'+(c?'':'opacity:.55')+'"><input type="checkbox" data-ssec="'+k+'"'+(shareSel[k]&&c?' checked':'')+(c?'':' disabled')+' style="margin-top:2px"><span><b>'+t+'</b>'+(sub?' <span class="muted">('+sub+')</span>':'')+(c?'':'<br><span class="muted" style="font-size:15px">Nothing to send</span>')+'</span></label>';}).join('')+'</div>'+
    '<div class="card"><span class="label">Message preview</span><textarea id="sharetext" readonly style="min-height:220px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);resize:vertical">'+esc(txt)+'</textarea></div>'+
    '<a class="btn primary" href="https://wa.me/?text='+enc(txt)+'" target="_blank" rel="noopener"'+(n?'':' aria-disabled="true" style="opacity:.5;pointer-events:none"')+'>'+ic('chat',22)+'Share on WhatsApp</a>'+
