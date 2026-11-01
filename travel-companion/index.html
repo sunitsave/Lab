@@ -332,7 +332,7 @@ const PARENT={location:'menu',units:'config',menu:'home',itinerary:'menu',config
 function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
-function resetUi(){profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
+function resetUi(){exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
 function go(r,fromHistory){r=valid(r);if(r==='menu')tourOpen=false;const changed=r!==cur;cur=r;resetUi();
   if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
   render();try{window.scrollTo(0,0);}catch(e){}}
@@ -596,7 +596,7 @@ function groupView(){
 const SECTIONS=[
  ['profile','Profile','name and photo',d=>(d.profile.name||d.profile.photo)?1:0,null],
  ['zones','Time zones','',d=>d.zones.length,'zone'],
- ['settings','Units','temperature and distance',d=>1,null],
+ ['settings','Units','temperature and distance',d=>d.__noUnits?0:1,null],
  ['contacts','Emergency contacts','',d=>d.contacts.length,'contact'],
  ['group','Tour WhatsApp group','',d=>d.group.link?1:0,null],
  ['meds','Critical medication','medicines and allergies',d=>d.meds.length+[d.allergies.food,d.allergies.medication].filter(x=>x&&x.trim()).length,'item'],
@@ -604,6 +604,16 @@ const SECTIONS=[
  ['days','Itinerary days','',d=>d.days.length,'day'],
  ['flights','Flights','',d=>d.flights.length,'flight']
 ];
+let exportSel=null;
+function exportPicker(){
+  if(!exportSel){exportSel={};SECTIONS.forEach(x=>{exportSel[x[0]]=x[3](data)>0;});}
+  const n=SECTIONS.filter(x=>exportSel[x[0]]).length;
+  return '<div class="note" style="gap:10px">'+SECTIONS.map(([k,t,sub,cnt,unit])=>{const c=cnt(data);const has=c>0;
+     const what=unit?(c+' '+unit+(c===1?'':'s')+' on this phone'):(has?'Set on this phone':'');
+     return '<label class="chk" style="align-items:flex-start;'+(has?'':'opacity:.55')+'"><input type="checkbox" data-xsec="'+k+'"'+(exportSel[k]&&has?' checked':'')+(has?'':' disabled')+' style="margin-top:2px"><span><b>'+t+'</b>'+(sub?' <span class="muted">('+sub+')</span>':'')+'<br><span class="muted" style="font-size:15px">'+(has?what:'Nothing to export')+'</span></span></label>';}).join('')+
+   '<div class="grid2"><button class="btn" style="min-height:48px;font-size:16px" data-act="xAll">Select all</button><button class="btn" style="min-height:48px;font-size:16px" data-act="xNone">Clear all</button></div>'+
+   '<button class="btn primary" data-act="export"'+(n?'':' disabled style="opacity:.5"')+'>Export '+n+' section'+(n===1?'':'s')+' as .zip</button></div>';
+}
 function importPicker(){
   const src=importArmed.data;const sel=importArmed.sel;
   const n=SECTIONS.filter(x=>sel[x[0]]).length;
@@ -616,7 +626,7 @@ function importPicker(){
 }
 function backupView(){
   return top('Export / Import','config')+'<main>'+
-   '<div class="card"><h2>'+ic('dl')+'Export</h2><p style="margin:0">Saves all trip details and photos into one .zip file. Keep it as a backup or send it to family.</p><button class="btn primary" data-act="export">Export as .zip</button></div>'+
+   '<div class="card"><h2>'+ic('dl')+'Export</h2><p style="margin:0">Saves trip details and photos into one .zip file. Keep it as a backup or send it to family. Tick the sections to include.</p>'+exportPicker()+'</div>'+
    '<div class="card"><h2>'+ic('ul')+'Import</h2><p style="margin:0">Load trip details someone prepared for you from a .zip file. You choose which sections to bring in; the others stay as they are on this phone.</p>'+
    (importArmed?importPicker():'<label class="btn" for="importfile">Choose .zip file</label><input type="file" id="importfile" accept=".zip,application/zip" hidden>')+'</div>'+
    '<div class="card"><span class="label">Testing tools</span>'+(resetArmed==='reset'?'<button class="btn danger" data-act="doReset">Tap again to load the sample trip</button>':'<button class="btn" data-act="armReset">Load the sample trip</button>')+(resetArmed==='wipe'?'<button class="btn danger" data-act="doWipe">Tap again to delete everything</button>':'<button class="btn" data-act="armWipe">Delete all data on this phone</button>')+'</div></main>';
@@ -708,6 +718,7 @@ document.addEventListener('click',e=>{
   if(a==='export'){doExport();return;}
   if(a==='doImport'){doImport();return;}
   if(a==='cancelImport'){importArmed=null;render();return;}
+  if(a==='xAll'||a==='xNone'){SECTIONS.forEach(x=>{exportSel[x[0]]=a==='xAll'&&x[3](data)>0;});render();return;}
   if(a==='selAll'||a==='selNone'){SECTIONS.forEach(x=>{importArmed.sel[x[0]]=a==='selAll'&&x[3](importArmed.data)>0;});render();return;}
   if(a==='armReset'){resetArmed='reset';render();return;}
   if(a==='doReset'){data=sample();resetArmed=null;save();toast('Sample trip loaded');render();return;}
@@ -719,6 +730,7 @@ document.addEventListener('change',async e=>{
   if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);render();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
   if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;const d=await readBackup(f);if(!d){toast('This file is not a Travel Companion backup. Choose the .zip made by Export.');render();return;}
     const sel={};SECTIONS.forEach(x=>{sel[x[0]]=x[0]!=='settings'&&x[3](d)>0;});importArmed={name:f.name,data:d,sel};render();return;}
+  if(el.dataset&&el.dataset.xsec&&exportSel){exportSel[el.dataset.xsec]=el.checked;render();return;}
   if(el.dataset&&el.dataset.sec&&importArmed){importArmed.sel[el.dataset.sec]=el.checked;render();return;}
 });
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('form[data-form]');if(f)handleSubmit(f);});
@@ -747,12 +759,27 @@ function handleSubmit(form){
 /* ---------- export / import ---------- */
 async function doExport(){
   if(typeof JSZip==='undefined'){toast('The zip tool did not load. Check the internet connection and try again.');return;}
+  const sel=exportSel||{};const picked=SECTIONS.filter(x=>sel[x[0]]&&x[3](data)>0).map(x=>x[0]);
+  if(!picked.length){toast('Tick at least one section to export.');return;}
+  const out=blank();out.sample=false;
+  if(sel.profile)out.profile=data.profile;
+  if(sel.zones)out.zones=data.zones;
+  if(sel.settings)out.settings=data.settings;
+  if(sel.contacts)out.contacts=data.contacts;
+  if(sel.group)out.group=data.group;
+  if(sel.meds){out.meds=data.meds;out.allergies=data.allergies;}
+  if(sel.hotels)out.hotels=data.hotels.slice();
+  if(sel.days){out.days=data.days;
+    /* days point to hotels: include the hotels they use so the file stays complete */
+    data.days.forEach(d=>{if(d.hotelId&&!out.hotels.some(h=>h.id===d.hotelId)){const h=hotelById(d.hotelId);if(h)out.hotels.push(h);}});}
+  if(sel.flights)out.flights=data.flights;
+  out.sections=picked;
   const zip=new JSZip();let n=0;
-  const copy=JSON.parse(JSON.stringify(data,(k,v)=>{if(typeof v==='string'&&v.startsWith('data:image/')){n++;const name='photos/photo-'+n+'.jpg';zip.file(name,v.split(',')[1],{base64:true});return name;}return v;}));
+  const copy=JSON.parse(JSON.stringify(out,(k,v)=>{if(typeof v==='string'&&v.startsWith('data:image/')){n++;const name='photos/photo-'+n+'.jpg';zip.file(name,v.split(',')[1],{base64:true});return name;}return v;}));
   copy.exportedAt=new Date().toISOString();copy.app='Travel Companion '+BUILD;
   zip.file('data.json',JSON.stringify(copy,null,2));
   const blob=await zip.generateAsync({type:'blob'});
-  const fname='travel-companion-'+dateIn(DEVICE_TZ)+'.zip';
+  const fname='travel-companion-'+dateIn(DEVICE_TZ)+(picked.length<SECTIONS.filter(x=>x[3](data)>0).length?'-partial':'')+'.zip';
   let dl=null;try{dl=await (window.claude&&window.claude.use?window.claude.use('downloads'):null);}catch(e){dl=null;}
   if(!dl){try{const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=fname;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);toast('Backup saved: '+fname);}catch(e){toast('Saving files is not available in this view.');}return;}
   try{await dl.save({filename:fname,data:blob});toast('Backup saved: '+fname);}
@@ -765,8 +792,8 @@ async function readBackup(f){
     const parsed=JSON.parse(await j.async('string'));
     const photos={};await Promise.all(Object.keys(zip.files).filter(p=>p.startsWith('photos/')&&!zip.files[p].dir).map(async p=>{photos[p]='data:image/jpeg;base64,'+await zip.file(p).async('base64');}));
     const restored=JSON.parse(JSON.stringify(parsed),(k,v)=>typeof v==='string'&&photos[v]?photos[v]:v);
-    delete restored.exportedAt;delete restored.app;
-    return normalize(restored);
+    const secs=restored.sections;delete restored.exportedAt;delete restored.app;delete restored.sections;
+    const r=normalize(restored);if(Array.isArray(secs)&&secs.indexOf('settings')<0)r.__noUnits=true;return r;
   }catch(e){return null;}
 }
 function doImport(){
