@@ -127,7 +127,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.14';
+const BUILD='UAT build 0.15';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -594,7 +594,6 @@ function groupView(){
 
 /* ---------- BACKUP ---------- */
 const SECTIONS=[
- ['profile','Profile','name and photo',d=>(d.profile.name||d.profile.photo)?1:0,null],
  ['zones','Time zones','',d=>d.zones.length,'zone'],
  ['settings','Units','temperature and distance',d=>d.__noUnits?0:1,null],
  ['contacts','Emergency contacts','',d=>d.contacts.length,'contact'],
@@ -626,8 +625,8 @@ function importPicker(){
 }
 function backupView(){
   return top('Export / Import','config')+'<main>'+
-   '<div class="card"><h2>'+ic('dl')+'Export</h2><p style="margin:0">Saves trip details and photos into one .zip file. Keep it as a backup or send it to family. Tick the sections to include.</p>'+exportPicker()+'</div>'+
-   '<div class="card"><h2>'+ic('ul')+'Import</h2><p style="margin:0">Load trip details someone prepared for you from a .zip file. You choose which sections to bring in; the others stay as they are on this phone.</p>'+
+   '<div class="card"><h2>'+ic('dl')+'Export</h2><p style="margin:0">Saves trip details and photos into one .zip file. Keep it as a backup or send it to family. Tick the sections to include. Your profile (name and photo) always stays on this phone.</p>'+exportPicker()+'</div>'+
+   '<div class="card"><h2>'+ic('ul')+'Import</h2><p style="margin:0">Load trip details someone prepared for you from a .zip file. You choose which sections to bring in; the others stay as they are on this phone. Your profile is never changed by an import.</p>'+
    (importArmed?importPicker():'<label class="btn" for="importfile">Choose .zip file</label><input type="file" id="importfile" accept=".zip,application/zip" hidden>')+'</div>'+
    '<div class="card"><span class="label">Testing tools</span>'+(resetArmed==='reset'?'<button class="btn danger" data-act="doReset">Tap again to load the sample trip</button>':'<button class="btn" data-act="armReset">Load the sample trip</button>')+(resetArmed==='wipe'?'<button class="btn danger" data-act="doWipe">Tap again to delete everything</button>':'<button class="btn" data-act="armWipe">Delete all data on this phone</button>')+'</div></main>';
 }
@@ -762,7 +761,6 @@ async function doExport(){
   const sel=exportSel||{};const picked=SECTIONS.filter(x=>sel[x[0]]&&x[3](data)>0).map(x=>x[0]);
   if(!picked.length){toast('Tick at least one section to export.');return;}
   const out=blank();out.sample=false;
-  if(sel.profile)out.profile=data.profile;
   if(sel.zones)out.zones=data.zones;
   if(sel.settings)out.settings=data.settings;
   if(sel.contacts)out.contacts=data.contacts;
@@ -773,6 +771,7 @@ async function doExport(){
     /* days point to hotels: include the hotels they use so the file stays complete */
     data.days.forEach(d=>{if(d.hotelId&&!out.hotels.some(h=>h.id===d.hotelId)){const h=hotelById(d.hotelId);if(h)out.hotels.push(h);}});}
   if(sel.flights)out.flights=data.flights;
+  delete out.profile;  /* the profile always stays on this phone */
   out.sections=picked;
   const zip=new JSZip();let n=0;
   const copy=JSON.parse(JSON.stringify(out,(k,v)=>{if(typeof v==='string'&&v.startsWith('data:image/')){n++;const name='photos/photo-'+n+'.jpg';zip.file(name,v.split(',')[1],{base64:true});return name;}return v;}));
@@ -799,7 +798,6 @@ async function readBackup(f){
 function doImport(){
   if(!importArmed)return;const src=importArmed.data,sel=importArmed.sel;const done=[];
   const oldDays=data.days,oldHotels=data.hotels;
-  if(sel.profile){data.profile=src.profile;done.push('Profile');}
   if(sel.zones){data.zones=src.zones;done.push('Time zones');}
   if(sel.settings){data.settings=src.settings;done.push('Units');}
   if(sel.contacts){data.contacts=src.contacts;done.push('Emergency contacts');}
