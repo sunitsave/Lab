@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.19';
+const BUILD='UAT build 0.20';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -336,11 +336,11 @@ let resetArmed=null;
 
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,3500);}
 
-const PARENT={location:'menu',units:'config',menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
+const PARENT={share:'menu',location:'menu',units:'config',menu:'home',itinerary:'menu',config:'menu',profile:'config',zones:'config',days:'config',hotels:'config',flights:'config',meds:'config',contacts:'config',group:'config',backup:'config',tour:'menu',wifi:'menu',network:'menu',inflight:'menu',translate:'menu'};
 function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
-function resetUi(){exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
+function resetUi(){shareSel=null;exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
 function go(r,fromHistory){r=valid(r);if(r==='menu')tourOpen=false;const changed=r!==cur;cur=r;resetUi();
   if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
   render();try{window.scrollTo(0,0);}catch(e){}}
@@ -500,6 +500,7 @@ function menuView(){
   h+='<button type="button" class="navitem" data-act="tourToggle" aria-expanded="'+tourOpen+'">'+ic('compass',28)+'<span class="grow"><span class="t">Guide</span><span class="s">Step-by-step help</span></span>'+ic(tourOpen?'up':'down',22)+'</button>';
   if(tourOpen)h+='<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0 12px 12px;border-bottom:1px solid var(--line)">'+sub.map(s=>'<a class="subitem" href="#'+s[0]+'">'+ic(s[1],24)+'<span class="grow"><span class="t">'+s[2]+'</span><span class="s">'+s[3]+'</span></span>'+ic('chev',22)+'</a>').join('')+'</div>';
   h+='<a class="navitem" href="#itinerary">'+ic('cal',28)+'<span class="grow"><span class="t">View itinerary</span></span>'+ic('chev',22)+'</a>';
+  h+='<a class="navitem" href="#share">'+ic('chat',28)+'<span class="grow"><span class="t">Send critical info</span><span class="s">Share key details on WhatsApp</span></span>'+ic('chev',22)+'</a>';
   h+='<a class="navitem" href="#config">'+ic('sliders',28)+'<span class="grow"><span class="t">Configuration</span><span class="s">Trip, safety, profile, backup</span></span>'+ic('chev',22)+'</a>';
   h+='</nav><p class="foot">'+BUILD+' · All data is saved on this phone only.</p></main>';
   return h;
@@ -598,6 +599,43 @@ function profileView(){
    '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<input id="f-nat" value="'+esc(p.nationality)+'" placeholder="e.g. Indian"></label><p class="muted" style="margin:0;font-size:15px">Used for the Connect to Embassy button.</p><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
   return h;
 }
+/* ---------- send critical info ---------- */
+const SHARE_SECS=[
+ ['profile','Profile','name and nationality',()=>data.profile.name||data.profile.nationality?1:0],
+ ['contacts','Emergency contacts','',()=>data.contacts.length],
+ ['meds','Critical medicines','with allergies',()=>data.meds.length+[data.allergies.food,data.allergies.medication].filter(x=>x&&x.trim()).length],
+ ['days','Itinerary','today and later',()=>upcomingDays().length],
+ ['hotels','Hotels','',()=>data.hotels.length],
+ ['flights','Flights','today and later',()=>upcomingFlights().length]
+];
+let shareSel=null;
+function upcomingDays(){const t=dateIn(DEVICE_TZ);return data.days.filter(d=>d.date>=t).sort(byDayOrder);}
+function upcomingFlights(){const t=dateIn(DEVICE_TZ);return data.flights.filter(f=>f.date>=t).sort((a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')));}
+function shareText(){
+  const sel=shareSel,L=[];const p=data.profile;
+  L.push('*Critical travel info'+(p.name?' – '+p.name:'')+'*');
+  if(sel.profile){if(p.name)L.push('Name: '+p.name);if(p.nationality)L.push('Nationality: '+p.nationality);}
+  if(sel.contacts&&data.contacts.length){L.push('','*Emergency contacts*');data.contacts.forEach(c=>L.push('• '+c.name+(c.relation?' ('+c.relation+')':'')+': '+c.phone));}
+  if(sel.meds){const al=data.allergies;if(data.meds.length||al.food||al.medication){L.push('','*Critical medicines*');
+    data.meds.forEach(m=>L.push('• '+m.name+' – '+(m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+' (morning-afternoon-night)'+(m.note?', '+m.note:'')));
+    if(al.food)L.push('Food allergy: '+al.food);if(al.medication)L.push('Medicine allergy: '+al.medication);}}
+  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+': '+d.place+(d.location?', '+d.location:'')+(h?' · Hotel: '+h.name:'')+(d.done?' (done)':''));});}}
+  if(sel.hotels&&data.hotels.length){L.push('','*Hotels*');data.hotels.forEach(h=>L.push('• '+h.name+(h.address?', '+h.address:'')+(h.phone?' · '+h.phone:'')));}
+  if(sel.flights){const fs=upcomingFlights();if(fs.length){L.push('','*Flights*');fs.forEach(f=>L.push('• '+nice(f.date)+' '+(f.time||'')+' · '+f.number+' '+f.from+' → '+f.to+(f.notes?' · '+f.notes:'')));}}
+  L.push('','Sent from Travel Companion');
+  return L.join('\n');
+}
+function shareView(){
+  if(!shareSel){shareSel={};SHARE_SECS.forEach(x=>{shareSel[x[0]]=x[3]()>0;});}
+  const n=SHARE_SECS.filter(x=>shareSel[x[0]]&&x[3]()>0).length;
+  const txt=shareText();
+  return top('Send critical info','menu')+'<main><div class="card"><span class="label">Include</span>'+
+   SHARE_SECS.map(([k,t,sub,cnt])=>{const c=cnt();return '<label class="chk" style="align-items:flex-start;'+(c?'':'opacity:.55')+'"><input type="checkbox" data-ssec="'+k+'"'+(shareSel[k]&&c?' checked':'')+(c?'':' disabled')+' style="margin-top:2px"><span><b>'+t+'</b>'+(sub?' <span class="muted">('+sub+')</span>':'')+(c?'':'<br><span class="muted" style="font-size:15px">Nothing to send</span>')+'</span></label>';}).join('')+'</div>'+
+   '<div class="card"><span class="label">Message preview</span><textarea id="sharetext" readonly style="min-height:220px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);color:var(--ink);resize:vertical">'+esc(txt)+'</textarea></div>'+
+   '<a class="btn primary" href="https://wa.me/?text='+enc(txt)+'" target="_blank" rel="noopener"'+(n?'':' aria-disabled="true" style="opacity:.5;pointer-events:none"')+'>'+ic('chat',22)+'Share on WhatsApp</a>'+
+   '<button class="btn" data-act="copyShare">Copy message</button>'+
+   '<p class="muted" style="margin:0;font-size:15px">WhatsApp opens with this message ready. Pick a person or group and tap Send. Nothing is sent until you do.</p></main>';
+}
 function unitsView(){
   const seg=(k,opts)=>'<div class="seg" role="group">'+opts.map(([v,l])=>'<button type="button" data-act="setUnit" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(data.settings[k]===v)+'">'+l+'</button>').join('')+'</div>';
   return top('Units','config')+'<main><div class="card"><span class="label">Temperature</span>'+seg('temp',[['C','Celsius °C'],['F','Fahrenheit °F']])+'</div><div class="card"><span class="label">Distance</span>'+seg('dist',[['km','Kilometres'],['mi','Miles']])+'</div><p class="muted" style="margin:0">Changes save as soon as you tap.</p></main>';
@@ -689,6 +727,7 @@ function render(){
   else if(r==='profile')h=profileView();
   else if(r==='zones')h=zonesView();
   else if(r==='units')h=unitsView();
+  else if(r==='share')h=shareView();
   else if(r==='group')h=groupView();
   else if(r==='backup')h=backupView();
   else if(r==='tour')h=tourView();
@@ -739,6 +778,7 @@ document.addEventListener('click',e=>{
   if(a==='export'){doExport();return;}
   if(a==='doImport'){doImport();return;}
   if(a==='cancelImport'){importArmed=null;render();return;}
+  if(a==='copyShare'){const t=document.getElementById('sharetext');const v=t?t.value:'';const done=()=>toast('Message copied');try{navigator.clipboard.writeText(v).then(done,()=>{t.select();toast('Message selected. Use Copy from the phone menu.');});}catch(e){t.select();toast('Message selected. Use Copy from the phone menu.');}return;}
   if(a==='xAll'||a==='xNone'){SECTIONS.forEach(x=>{exportSel[x[0]]=a==='xAll'&&x[3](data)>0;});render();return;}
   if(a==='selAll'||a==='selNone'){SECTIONS.forEach(x=>{importArmed.sel[x[0]]=a==='selAll'&&x[3](importArmed.data)>0;});render();return;}
   if(a==='armReset'){resetArmed='reset';render();return;}
@@ -751,6 +791,7 @@ document.addEventListener('change',async e=>{
   if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);render();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
   if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;const d=await readBackup(f);if(!d){toast('This file is not a Travel Companion backup. Choose the .zip made by Export.');render();return;}
     const sel={};SECTIONS.forEach(x=>{sel[x[0]]=x[0]!=='settings'&&x[3](d)>0;});importArmed={name:f.name,data:d,sel};render();return;}
+  if(el.dataset&&el.dataset.ssec&&shareSel){shareSel[el.dataset.ssec]=el.checked;render();return;}
   if(el.dataset&&el.dataset.xsec&&exportSel){exportSel[el.dataset.xsec]=el.checked;render();return;}
   if(el.dataset&&el.dataset.sec&&importArmed){importArmed.sel[el.dataset.sec]=el.checked;render();return;}
 });
