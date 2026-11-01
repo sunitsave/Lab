@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.18';
+const BUILD='UAT build 0.19';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -162,6 +162,7 @@ const P={
  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
  fork:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11"/>',
+ check:'<path d="M5 12l5 5 9-10"/>',
  plus:'<path d="M12 5v14M5 12h14"/>', ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
  sliders:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
@@ -258,6 +259,7 @@ const TRANSLATE_HREF=IS_ANDROID&&!IN_FRAME?'intent:#Intent;action=android.intent
 /* ---------- location-first buttons ---------- */
 function openOut(url,t0){if(IN_FRAME){const l=document.createElement('a');l.href=url;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return;}if(Date.now()-t0<4500){let w=null;try{w=window.open(url,'_blank');}catch(e){}if(w){try{w.opener=null;}catch(e){}return;}} try{location.href=url;}catch(e){}}
 const PLACE_Q={police:'police+station',hospital:'hospital',pharmacy:'pharmacy',restaurant:'restaurants'};
+function placeQ(to){return to==='embassy'?enc(data.profile.nationality+' embassy'):PLACE_Q[to];}
 async function locGo(to){
   const t0=Date.now();live.locBusy=to;live.posErr=null;render();
   let pos=null;try{pos=await getPos(true);}catch(e){}
@@ -265,11 +267,11 @@ async function locGo(to){
   if(pos){refreshWeather(true);
     const ll=pos.lat.toFixed(5)+','+pos.lon.toFixed(5);
     if(to==='share'){const msg=(data.profile.name?data.profile.name+' – ':'')+'My current location: https://maps.google.com/?q='+ll;openOut('https://wa.me/?text='+enc(msg),t0);}
-    else openOut('https://www.google.com/maps/search/'+PLACE_Q[to]+'/@'+pos.lat+','+pos.lon+',15z',t0);
+    else openOut('https://www.google.com/maps/search/'+placeQ(to)+'/@'+pos.lat+','+pos.lon+',15z',t0);
     return;}
   if(to==='share'){toast('Your location could not be found, so nothing was shared. Allow location and try again.');return;}
   toast('Location not found. Opening Google Maps, which will use its own location.');
-  openOut('https://www.google.com/maps/search/'+PLACE_Q[to]+'+near+me',t0);
+  openOut('https://www.google.com/maps/search/'+placeQ(to)+'+near+me',t0);
 }
 
 /* ---------- address search: Google Places when a key is set, else OpenStreetMap ---------- */
@@ -299,7 +301,7 @@ function sample(){
   const t=dateIn(DEVICE_TZ);
   const h1=uid(),h2=uid();
   return {sample:true,settings:{temp:'C',dist:'km'},
-    profile:{name:'Asha Mehta',photo:''},
+    profile:{name:'Asha Mehta',photo:'',nationality:'Indian'},
     zones:[{label:'India',tz:'Asia/Kolkata',home:true},{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
     contacts:[{id:uid(),name:'Rahul Mehta',relation:'Son',phone:'+91 98200 12345',whatsapp:true},{id:uid(),name:'Tour manager – Priya',relation:'Tour manager',phone:'+971 50 123 4567',whatsapp:true}],
     group:{name:'Dubai–Turkey Seniors Tour',link:'https://chat.whatsapp.com/'},
@@ -353,6 +355,9 @@ function section(key,icon,title,sub,count,body){
   const o=!!open[key];
   return '<section class="sec'+(o?' open':'')+'"><button type="button" class="sechead" data-act="toggle" data-key="'+key+'" aria-expanded="'+o+'">'+ic(icon)+'<span class="grow"><span class="t">'+esc(title)+'</span><span class="s">'+sub+'</span></span><span class="badge" aria-label="'+count+' items">'+count+'</span>'+ic(o?'up':'down',24)+'</button>'+(o?'<div class="secbody">'+body+'</div>':'')+'</section>';
 }
+function byDayOrder(a,b){return (a.date||'').localeCompare(b.date||'')||((a.o||0)-(b.o||0));}
+function dayEntries(ds){return data.days.filter(d=>d.date===ds).sort(byDayOrder);}
+function lastHotel(list){for(let i=list.length-1;i>=0;i--)if(list[i].hotelId)return list[i].hotelId;return '';}
 function hotelById(id){return data.hotels.find(h=>h.id===id);}
 function dayFor(ds){return data.days.find(d=>d.date===ds);}
 
@@ -360,7 +365,7 @@ function dayFor(ds){return data.days.find(d=>d.date===ds);}
 function homeView(){
   const now=new Date();
   const today=dateIn(DEVICE_TZ,now), tomorrow=addDays(today,1);
-  const tday=dayFor(today), nday=dayFor(tomorrow);
+  const tdays=dayEntries(today), ndays=dayEntries(tomorrow);
   const hr=hourIn(DEVICE_TZ,now);
   const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
   const p=data.profile;
@@ -379,7 +384,7 @@ function homeView(){
      weatherBlock()+'</div>';
   const hz=data.zones.find(z=>z.home&&validTz(z.tz));
   if(hz){const hd=zoneDay(hz,now);const hn=hz.label||zoneName(hz.tz);
-    h+='<div class="card" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span>'+tstack('<span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span>',hz.tz,now,'flex-start')+'<span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
+    h+='<div class="card strong" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span>'+tstack('<span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span>',hz.tz,now,'flex-start')+'<span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
   h+='</section>';
 
   /* Other zones */
@@ -416,14 +421,15 @@ function homeView(){
   const busy=live.locBusy;
   const locBody='<div class="card">'+
     '<button class="btn primary" data-act="locGo" data-to="share"'+(busy?' disabled':'')+'>'+ic('chat',22)+(busy==='share'?'Finding your location…':'Share my location on WhatsApp')+'</button>'+
-    '<div class="grid2"><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="police"'+(busy?' disabled':'')+'>'+ic('shield',22)+(busy==='police'?'Finding…':'Police nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="hospital"'+(busy?' disabled':'')+'>'+ic('cross',22)+(busy==='hospital'?'Finding…':'Hospital nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="pharmacy"'+(busy?' disabled':'')+'>'+ic('pill',22)+(busy==='pharmacy'?'Finding…':'Pharmacy nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="restaurant"'+(busy?' disabled':'')+'>'+ic('fork',22)+(busy==='restaurant'?'Finding…':'Restaurant nearby')+'</button></div>'+
+    '<div class="grid2"><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="police"'+(busy?' disabled':'')+'>'+ic('shield',22)+(busy==='police'?'Finding…':'Police nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="hospital"'+(busy?' disabled':'')+'>'+ic('cross',22)+(busy==='hospital'?'Finding…':'Hospital nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="pharmacy"'+(busy?' disabled':'')+'>'+ic('pill',22)+(busy==='pharmacy'?'Finding…':'Pharmacy nearby')+'</button><button class="btn" style="min-height:72px;flex-direction:column;gap:4px" data-act="locGo" data-to="restaurant"'+(busy?' disabled':'')+'>'+ic('fork',22)+(busy==='restaurant'?'Finding…':'Restaurant nearby')+'</button>'+
+    (data.profile.nationality?'<button class="btn" style="min-height:72px;flex-direction:column;gap:4px;grid-column:1/-1" data-act="locGo" data-to="embassy"'+(busy?' disabled':'')+'>'+ic('globe',22)+(busy==='embassy'?'Finding…':'Connect to Embassy')+'<span style="font-size:14px;font-weight:400">'+esc(data.profile.nationality)+' embassy</span></button>':'')+'</div>'+
     (live.posErr==='denied'?'<div class="warn">'+ic('alert')+'<span>Location is blocked for this app. Tap the lock icon next to the web address and allow Location.</span></div>':'')+
     (live.posErr==='unavailable'?'<div class="warn">'+ic('alert')+'<span>Your location could not be found. Turn on Location on the phone and try again.</span></div>':'')+
     '<p class="muted" style="margin:0;font-size:15px">Each button finds where you are right now first.</p></div>';
   h+=section('loc','pin','Where I am now','Share location · Police · Hospital · Pharmacy · Restaurant',5,locBody);
 
   /* Today */
-  if(tday){h+=section('itin','cal',"Today's itinerary",esc(tday.place),1,dayCard(tday,true));}
+  if(tdays.length){h+=section('itin','cal',"Today's itinerary",esc(tdays.map(d=>d.place).join(' · ')),tdays.length,tdays.map((d,i)=>dayCard(d,true,false,i===tdays.length-1)).join(''));}
   else notToday.push(data.days.length?"Today's itinerary (nothing planned for today)":"Itinerary (no days added)");
 
   /* Flight */
@@ -435,9 +441,9 @@ function homeView(){
   } else notToday.push("Today's flight (no flight today)");
 
   /* Tomorrow */
-  if(nday){
-    const changed=tday&&nday.hotelId&&tday.hotelId!==nday.hotelId;
-    h+=section('tom','calnext','Tomorrow',esc(nday.place)+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),1,dayCard(nday,false,changed));
+  if(ndays.length){
+    const th=lastHotel(tdays),nh=lastHotel(ndays);const changed=!!(th&&nh&&th!==nh);
+    h+=section('tom','calnext','Tomorrow',esc(ndays.map(d=>d.place).join(' · '))+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),ndays.length,ndays.map(d=>dayCard(d,false,changed&&d.hotelId===nh)).join(''));
   } else if(data.days.length) notToday.push('Tomorrow (nothing planned)');
 
   /* Summary */
@@ -461,7 +467,7 @@ function homeView(){
    Date, Place, Location, Ticket suggestion, Important notes, Clothes (+outfit photo), Accessories, Hotel */
 function dayDetails(d,opts){
   opts=opts||{};const ho=hotelById(d.hotelId);
-  let b='<div><b style="font-size:22px">'+esc(d.place)+'</b>'+(d.location?'<br><span class="muted">'+esc(d.location)+'</span>':'')+'</div>';
+  let b='<div'+(d.done?' style="opacity:.75"':'')+'>'+(d.done?'<span class="badge" style="background:var(--accent);color:var(--accent-ink);margin-bottom:4px;width:max-content">'+ic('check',14)+' Completed</span>':'')+'<b style="font-size:22px'+(d.done?';text-decoration:line-through':'')+'">'+esc(d.place)+'</b>'+(d.location?'<br><span class="muted">'+esc(d.location)+'</span>':'')+'</div>';
   if(d.location&&opts.actions)b+='<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination='+enc(d.location)+'" target="_blank" rel="noopener">'+ic('pin',22)+'Directions</a>';
   if(d.ticket)b+='<div class="note"><span class="label">Ticket suggestion</span><span>'+esc(d.ticket)+'</span></div>';
   if(d.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(d.notes)+'</span></div>';
@@ -472,9 +478,9 @@ function dayDetails(d,opts){
   }
   return b;
 }
-function dayCard(d,isToday,hotelChanged){
+function dayCard(d,isToday,hotelChanged,showLink){
   let b='<div class="card">'+dayDetails(d,{actions:true,hotelChanged,tomorrow:!isToday});
-  if(isToday)b+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';
+  if(isToday&&showLink)b+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';
   return b+'</div>';
 }
 function flightCard(f,now){
@@ -502,16 +508,20 @@ function menuView(){
 /* ---------- ITINERARY ---------- */
 function itineraryView(){
   const today=dateIn(DEVICE_TZ);
-  const days=data.days.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const dates=[...new Set(data.days.map(d=>d.date).filter(Boolean))].sort();
   let h=top('Itinerary','menu')+'<main>';
-  if(!days.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
-  let prevHotel=null;
-  days.forEach((d,i)=>{
-    const ho=hotelById(d.hotelId);const changed=i>0&&d.hotelId&&prevHotel&&d.hotelId!==prevHotel;prevHotel=d.hotelId||prevHotel;
-    const fl=data.flights.filter(f=>f.date===d.date);
-    h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div>'+
-      dayDetails(d,{hotelChanged:changed})+
-      fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+'</div>';
+  if(!dates.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
+  let prevHotel='';
+  dates.forEach((ds,i)=>{
+    const list=dayEntries(ds);const fl=data.flights.filter(f=>f.date===ds);
+    h+='<div class="card'+(ds===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(ds===today?' · Today':'')+'</span><span class="muted">'+esc(nice(ds))+'</span></div>';
+    list.forEach((d,k)=>{
+      const changed=!!(d.hotelId&&prevHotel&&d.hotelId!==prevHotel);if(d.hotelId)prevHotel=d.hotelId;
+      if(k>0)h+='<hr style="border:0;border-top:1px solid var(--line);margin:4px 0;width:100%">';
+      if(list.length>1)h+='<span class="muted" style="font-size:15px">'+(k+1)+' of '+list.length+'</span>';
+      h+=dayDetails(d,{hotelChanged:changed})+'<button class="btn'+(d.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-id="'+d.id+'" aria-pressed="'+!!d.done+'">'+ic(d.done?'back':'check',20)+(d.done?'Mark as not done':'Mark as done')+'</button>';
+    });
+    h+=fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+'</div>';
   });
   h+='</main>';
   return h;
@@ -531,7 +541,7 @@ function configView(){
 /* ---------- generic list editors ---------- */
 const TZS=(()=>{try{return Intl.supportedValuesOf('timeZone')}catch(e){return Object.keys(COORDS)}})();
 const FORMS={
-  days:{title:'Itinerary days',one:'day',sort:(a,b)=>(a.date||'').localeCompare(b.date||''),line:d=>[nice(d.date),d.place],fields:[
+  days:{title:'Itinerary days',one:'day',sort:byDayOrder,line:d=>[nice(d.date),d.place],fields:[
     ['date','Date','date',1],['place','Place name','text',1],['location','Location / address','place'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
   hotels:{title:'Hotels',one:'hotel',line:h=>[h.name,h.address],fields:[['name','Hotel name','text',1],['address','Address','place'],['phone','Phone (with country code)','tel']]},
   flights:{title:'Flights',one:'flight',sort:(a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')),line:f=>[nice(f.date)+' · '+(f.time||''),f.number+' '+f.from+' → '+f.to],fields:[
@@ -571,7 +581,8 @@ function listView(kind){
   if(!items.length)h+='<p class="muted">Nothing added yet.</p>';
   items.forEach(it=>{
     const [a,b]=F.line(it);
-    h+='<div class="listrow"><span class="grow"><b style="font-size:19px;overflow-wrap:anywhere">'+esc(a)+'</b><br><span class="muted" style="overflow-wrap:anywhere">'+esc(b)+'</span></span>'+
+    let mv='';if(kind==='days'&&pendingDelete!==it.id){const sib=dayEntries(it.date);if(sib.length>1){const k=sib.findIndex(x=>x.id===it.id);mv='<span style="display:flex;flex-direction:column;gap:4px"><button class="iconbtn" style="width:44px;height:40px" data-act="dMove" data-dir="-1" data-id="'+it.id+'" aria-label="Move up within the day"'+(k===0?' disabled style="width:44px;height:40px;opacity:.35"':'')+'>'+ic('up',18)+'</button><button class="iconbtn" style="width:44px;height:40px" data-act="dMove" data-dir="1" data-id="'+it.id+'" aria-label="Move down within the day"'+(k===sib.length-1?' disabled style="width:44px;height:40px;opacity:.35"':'')+'>'+ic('down',18)+'</button></span>';}}
+    h+='<div class="listrow">'+mv+'<span class="grow"><b style="font-size:19px;overflow-wrap:anywhere">'+esc(a)+'</b><br><span class="muted" style="overflow-wrap:anywhere">'+esc(b)+'</span></span>'+
       (pendingDelete===it.id?'<button class="btn danger" data-act="del" data-kind="'+kind+'" data-id="'+it.id+'">Tap to delete</button>':
       '<button class="iconbtn" style="width:52px;height:52px" data-act="edit" data-kind="'+kind+'" data-id="'+it.id+'" aria-label="Edit '+esc(a)+'">'+ic('edit',22)+'</button><button class="iconbtn" style="width:52px;height:52px" data-act="armDel" data-id="'+it.id+'" aria-label="Delete '+esc(a)+'">'+ic('trash',22)+'</button>')+'</div>';
   });
@@ -584,7 +595,7 @@ function profileView(){
   const p=data.profile;const cur='photo' in draftPhotos?draftPhotos.photo:p.photo;
   let h=top('Profile','config')+'<main><form data-form="profile" class="card"><span class="label">My profile</span><div class="row">'+(cur?'<img class="avatar" style="width:88px;height:88px" alt="" src="'+esc(cur)+'">':'<div class="avatar" style="width:88px;height:88px">'+ic('user',36)+'</div>')+
    '<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="f-photo">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="f-photo" data-photo="photo" hidden>'+(cur?'<button type="button" class="btn" data-act="rmPhoto" data-key="photo">Remove photo</button>':'')+'</span></div>'+
-   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
+   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<input id="f-nat" value="'+esc(p.nationality)+'" placeholder="e.g. Indian"></label><p class="muted" style="margin:0;font-size:15px">Used for the Connect to Embassy button.</p><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
   return h;
 }
 function unitsView(){
@@ -716,6 +727,8 @@ document.addEventListener('click',e=>{
   if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';render();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
+  if(a==='toggleDone'){const it=data.days.find(x=>x.id===b.dataset.id);if(!it)return;it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
+  if(a==='dMove'){const it=data.days.find(x=>x.id===b.dataset.id);if(!it)return;const sib=dayEntries(it.date);sib.forEach((x,i)=>x.o=i);const k=sib.indexOf(it),j=k+(+b.dataset.dir);if(j<0||j>=sib.length)return;const t=sib[k].o;sib[k].o=sib[j].o;sib[j].o=t;data.sample=false;save();render();return;}
   if(a==='zDel'){data.zones.splice(+b.dataset.i,1);save();render();return;}
   if(a==='tourNext'){tourStep=Math.min(TOUR.length-1,tourStep+1);render();return;}
   if(a==='tourPrev'){tourStep=Math.max(0,tourStep-1);render();return;}
@@ -746,7 +759,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&profileOpen){profil
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('form[data-form] input:not([type=checkbox]):not([type=file])'))return;e.preventDefault();handleSubmit(e.target.closest('form[data-form]'));});
 function handleSubmit(form){
   const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
-  if(kind==='profile'){data.profile.name=val('f-name');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
+  if(kind==='profile'){data.profile.name=val('f-name');data.profile.nationality=val('f-nat');if('photo' in draftPhotos)data.profile.photo=draftPhotos.photo;draftPhotos={};if(save())toast('Profile saved');render();return;}
   if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}const nz={label:val('z-label')||zoneName(tz),tz};if(document.getElementById('z-home').checked){data.zones.forEach(z=>z.home=false);nz.home=true;}data.zones.push(nz);if(save())toast('Time zone added');render();geocode(nz.label).then(c=>{if(c){nz.lat=c[0];nz.lon=c[1];save();render();}});return;}
   if(kind==='allergies'){data.allergies={food:val('al-food'),medication:val('al-med')};if(save())toast('Allergies saved');render();return;}
   if(kind==='group'){const l=val('g-link');if(l&&!/^https:\/\//.test(l)){document.getElementById('gerr').textContent='The link should start with https://';return;}data.group={name:val('g-name'),link:l};if(save())toast('Group saved');render();return;}
@@ -760,6 +773,7 @@ function handleSubmit(form){
     if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save.','f-'+k);return;}
     if(type==='tz'&&v&&!validTz(v)){showErr('Pick a time zone from the list, for example Asia/Dubai.','f-'+k);return;}
     out[k]=v;}
+  if(kind==='days'&&(!item||item.date!==out.date)){const sib=data.days.filter(x=>x.date===out.date&&x.id!==out.id);out.o=sib.length?Math.max(...sib.map(x=>x.o||0))+1:0;}
   if(item){data[kind]=data[kind].map(x=>x.id===item.id?out:x);}else data[kind].push(out);
   edit=null;draftPhotos={};if(save())toast('Saved');render();window.scrollTo(0,0);
 }
