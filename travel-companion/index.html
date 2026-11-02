@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.23';
+const BUILD='UAT build 0.24';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -163,6 +163,9 @@ const P={
  search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
  fork:'<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11"/>',
  check:'<path d="M5 12l5 5 9-10"/>',
+ eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+ move:'<path d="M5 12h14M13 6l6 6-6 6"/>',
  plus:'<path d="M12 5v14M5 12h14"/>', ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
  sliders:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
@@ -309,15 +312,34 @@ function sample(){
     allergies:{food:'Peanuts',medication:'Penicillin'},
     hotels:[{id:h1,name:'Rove Downtown',address:'Al Mustaqbal St, Dubai',phone:'+971 4 561 9000'},{id:h2,name:'Hotel Sultanahmet Palace',address:'Sultanahmet, Istanbul',phone:'+90 212 458 0460'}],
     days:[
-      {id:uid(),date:t,place:'Burj Khalifa and Dubai Mall',location:'1 Sheikh Mohammed bin Rashid Blvd, Dubai',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy. Fountain show at 18:00.',clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1},
-      {id:uid(),date:addDays(t,1),place:'Hagia Sophia and Blue Mosque',location:'Sultanahmet Square, Istanbul',ticket:'Free entry; head covering needed at the mosque',notes:'Closed to visitors during prayer times.',clothes:'Long sleeves, stole/scarf',clothesPhoto:'',accessories:'Umbrella, light jacket',hotelId:h2},
-      {id:uid(),date:addDays(t,2),place:'Bosphorus cruise',location:'Eminönü pier, Istanbul',ticket:'Included in tour package',notes:'Boarding at 11:00 sharp.',clothes:'Warm sweater',clothesPhoto:'',accessories:'Jacket, motion-sickness tablet',hotelId:h2}
+      {id:uid(),date:t,clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1,activities:[
+        {id:uid(),type:'sight',name:'Burj Khalifa and Dubai Mall',location:'1 Sheikh Mohammed bin Rashid Blvd, Dubai',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy.',about:'The tallest building in the world, with an observation deck on level 124.'},
+        {id:uid(),type:'sight',name:'Dubai Fountain show',location:'Burj Lake, Downtown Dubai',ticket:'Free',notes:'Show every 30 minutes from 18:00.',about:''},
+        {id:uid(),type:'travel',name:'Transfer to Dubai airport',location:'Dubai International Airport Terminal 3',ticket:'',notes:'Coach leaves the hotel at 19:00.',about:''}]},
+      {id:uid(),date:addDays(t,1),clothes:'Long sleeves, stole/scarf',clothesPhoto:'',accessories:'Umbrella, light jacket',hotelId:h2,activities:[
+        {id:uid(),type:'hotel',name:'Check in at Hotel Sultanahmet Palace',location:'Sultanahmet, Istanbul',ticket:'',notes:'Early check-in requested.',about:''},
+        {id:uid(),type:'sight',name:'Hagia Sophia and Blue Mosque',location:'Sultanahmet Square, Istanbul',ticket:'Free entry; head covering needed at the mosque',notes:'Closed to visitors during prayer times.',about:'Two of Istanbul\'s best-known landmarks, facing each other across the square.'}]},
+      {id:uid(),date:addDays(t,2),clothes:'Warm sweater',clothesPhoto:'',accessories:'Jacket, motion-sickness tablet',hotelId:h2,activities:[
+        {id:uid(),type:'sight',name:'Bosphorus cruise',location:'Eminönü pier, Istanbul',ticket:'Included in tour package',notes:'Boarding at 11:00 sharp.',about:''}]}
     ],
     flights:[{id:uid(),date:t,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'Dubai International Airport Terminal 3',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
   };
 }
 function blank(){return {sample:false,settings:{temp:'C',dist:'km'},profile:{name:'',photo:'',nationality:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
-function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:'',nationality:''},d.profile||{});d.settings=Object.assign({temp:'C',dist:'km'},d.settings||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});if(d.sample&&!d.zones.some(z=>z.home)){const k=d.zones.find(z=>z.tz==='Asia/Kolkata');if(k)k.home=true;else d.zones.unshift({label:'India',tz:'Asia/Kolkata',home:true});}return d;}
+function migrateDays(days){
+  if(!days.some(d=>!Array.isArray(d.activities)))return days;
+  const byDate={};const out=[];
+  days.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||((a.o||0)-(b.o||0))).forEach(e=>{
+    let day=byDate[e.date];
+    if(!day){day={id:e.id,date:e.date,clothes:'',clothesPhoto:'',accessories:'',hotelId:'',activities:[]};byDate[e.date]=day;out.push(day);}
+    ['clothes','clothesPhoto','accessories','hotelId'].forEach(k=>{if(!day[k]&&e[k])day[k]=e[k];});
+    if(Array.isArray(e.activities)){day.activities=day.activities.concat(e.activities);return;}
+    if(e.place||e.location||e.ticket||e.notes){let n=(e.place||'Activity').trim();const taken=x=>day.activities.some(a=>a.name.toLowerCase()===x.toLowerCase());let k=2,base=n;while(taken(n))n=base+' ('+(k++)+')';
+      day.activities.push({id:uid(),type:'sight',name:n,location:e.location||'',ticket:e.ticket||'',notes:e.notes||'',about:'',done:!!e.done});}
+  });
+  return out;
+}
+function normalize(d){const b=blank();d=Object.assign(b,d||{});['zones','contacts','meds','hotels','days','flights'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.profile=Object.assign({name:'',photo:'',nationality:''},d.profile||{});d.settings=Object.assign({temp:'C',dist:'km'},d.settings||{});d.group=Object.assign({name:'',link:''},d.group||{});d.allergies=Object.assign({food:'',medication:''},d.allergies||{});d.days=migrateDays(d.days);d.days.forEach(x=>{if(!Array.isArray(x.activities))x.activities=[];});if(d.sample&&!d.zones.some(z=>z.home)){const k=d.zones.find(z=>z.tz==='Asia/Kolkata');if(k)k.home=true;else d.zones.unshift({label:'India',tz:'Asia/Kolkata',home:true});}return d;}
 let data;
 let storageOk=true;
 try{const raw=localStorage.getItem(KEY);data=raw?normalize(JSON.parse(raw)):sample();}catch(e){storageOk=false;data=sample();}
@@ -340,7 +362,7 @@ const PARENT={share:'menu',location:'menu',units:'config',menu:'home',itinerary:
 function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
-function resetUi(){photoOpen=null;shareSel=null;exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
+function resetUi(){actEdit=null;actMove=null;photoOpen=null;shareSel=null;exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
 function go(r,fromHistory){r=valid(r);if(r==='menu')tourOpen=false;const changed=r!==cur;cur=r;resetUi();
   if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
   render();try{window.scrollTo(0,0);}catch(e){}}
@@ -430,7 +452,7 @@ function homeView(){
   h+=section('loc','pin','Where I am now','Share location · Police · Hospital · Pharmacy · Restaurant',5,locBody);
 
   /* Today */
-  if(tdays.length){h+=section('itin','cal',"Today's itinerary",esc(tdays.map(d=>d.place).join(' · ')),tdays.length,tdays.map((d,i)=>dayCard(d,true,false,i===tdays.length-1)).join(''));}
+  if(tdays.length){const d=tdays[0];const left=d.activities.filter(a=>!a.done).length;h+=section('itin','cal',"Today's itinerary",d.activities.length?(left?left+' to do · ':'All done · ')+esc(d.activities.map(a=>a.name).join(' · ')):'No activities planned',d.activities.length,dayCard(d,true,false,true));}
   else notToday.push(data.days.length?"Today's itinerary (nothing planned for today)":"Itinerary (no days added)");
 
   /* Flight */
@@ -444,7 +466,7 @@ function homeView(){
   /* Tomorrow */
   if(ndays.length){
     const th=lastHotel(tdays),nh=lastHotel(ndays);const changed=!!(th&&nh&&th!==nh);
-    h+=section('tom','calnext','Tomorrow',esc(ndays.map(d=>d.place).join(' · '))+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),ndays.length,ndays.map(d=>dayCard(d,false,changed&&d.hotelId===nh)).join(''));
+    const nd=ndays[0];h+=section('tom','calnext','Tomorrow',(nd.activities.length?esc(nd.activities.map(a=>a.name).join(' · ')):'No activities planned')+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),nd.activities.length,dayCard(nd,false,changed));
   } else if(data.days.length) notToday.push('Tomorrow (nothing planned)');
 
   /* Summary */
@@ -466,23 +488,31 @@ function homeView(){
 }
 /* shows exactly what the day form captures, in the form's order:
    Date, Place, Location, Ticket suggestion, Important notes, Clothes (+outfit photo), Accessories, Hotel */
+/* day-level details: clothes, accessories, hotel */
 function dayDetails(d,opts){
-  opts=opts||{};const ho=hotelById(d.hotelId);
-  let b='<div'+(d.done?' style="opacity:.75"':'')+'>'+(d.done?'<span class="badge" style="background:var(--accent);color:var(--accent-ink);margin-bottom:4px;width:max-content">'+ic('check',14)+' Completed</span>':'')+'<b style="font-size:22px'+(d.done?';text-decoration:line-through':'')+'">'+esc(d.place)+'</b>'+(d.location?'<br><span class="muted">'+esc(d.location)+'</span>':'')+'</div>';
-  if(d.location&&opts.actions)b+='<a class="btn" href="https://www.google.com/maps/dir/?api=1&destination='+enc(d.location)+'" target="_blank" rel="noopener">'+ic('pin',22)+'Directions</a>';
-  if(d.ticket)b+='<div class="note"><span class="label">Ticket suggestion</span><span>'+esc(d.ticket)+'</span></div>';
-  if(d.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(d.notes)+'</span></div>';
+  opts=opts||{};const ho=hotelById(d.hotelId);let b='';
   if(d.clothes||d.clothesPhoto)b+='<div class="row">'+(d.clothesPhoto?photoBox(d.clothesPhoto,'80px','80px','Outfit'):ic('shirt',26))+'<span class="grow"><span class="label">Wear</span><br>'+esc(d.clothes)+'</span></div>';
   if(d.accessories)b+='<div class="row">'+ic('bag',26)+'<span class="grow"><span class="label">Carry</span><br>'+esc(d.accessories)+'</span></div>';
-  if(ho){
-    b+='<div class="'+(opts.hotelChanged?'warn':'note')+'" style="flex-direction:column;gap:8px"><span class="label" style="color:inherit">'+(opts.hotelChanged?(opts.tomorrow?'Hotel changes tomorrow':'Hotel changes'):'Hotel')+'</span><span><b style="font-size:19px">'+esc(ho.name)+'</b>'+(ho.address?'<br>'+esc(ho.address):'')+'</span>'+(ho.phone?'<span>'+esc(ho.phone)+'</span>'+(opts.actions?'<a class="btn primary" href="'+telHref(ho.phone)+'">'+ic('phone',22)+'Call hotel</a>':''):'')+'</div>';
-  }
+  if(ho)b+='<div class="'+(opts.hotelChanged?'warn':'note')+'" style="flex-direction:column;gap:8px"><span class="label" style="color:inherit">'+(opts.hotelChanged?(opts.tomorrow?'Hotel changes tomorrow':'Hotel changes'):'Hotel')+'</span><span><b style="font-size:19px">'+esc(ho.name)+'</b>'+(ho.address?'<br>'+esc(ho.address):'')+'</span>'+(ho.phone?'<span>'+esc(ho.phone)+'</span>'+(opts.actions?'<a class="btn primary" href="'+telHref(ho.phone)+'">'+ic('phone',22)+'Call hotel</a>':''):'')+'</div>';
   return b;
 }
+/* one activity: name, type, location, ticket, notes, about */
+function activityCard(day,a,k,n,opts){
+  opts=opts||{};const t=ATYPES[a.type]||ATYPES.sight;
+  const head='<span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(n>1?(k+1)+' of '+n+' · ':'')+t[0]+'</span>';
+  if(a.done&&opts.compact)return '<div class="note" style="gap:4px">'+head+'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b><span class="muted" style="font-size:15px">Details in Menu › View itinerary</span></div>';
+  let b='<div class="note" style="gap:8px">'+head+(a.done?'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span>':'')+'<b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
+  if(a.location)b+='<span class="muted">'+esc(a.location)+'</span>'+(opts.actions?'<a class="btn" style="min-height:48px;font-size:16px" href="https://www.google.com/maps/dir/?api=1&destination='+enc(a.location)+'" target="_blank" rel="noopener">'+ic('pin',20)+'Directions</a>':'');
+  if(a.about)b+='<span><span class="label">About</span><br>'+esc(a.about)+'</span>';
+  if(a.ticket)b+='<span><span class="label">Ticket suggestion</span><br>'+esc(a.ticket)+'</span>';
+  if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
+  if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
+  return b+'</div>';
+}
 function dayCard(d,isToday,hotelChanged,showLink){
-  if(d.done){let c='<div class="card" style="gap:6px"><span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:20px;text-decoration:line-through;opacity:.8">'+esc(d.place)+'</b><span class="muted" style="font-size:15px">Details in Menu › View itinerary</span>';
-    if(isToday&&showLink)c+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';return c+'</div>';}
   let b='<div class="card">'+dayDetails(d,{actions:true,hotelChanged,tomorrow:!isToday});
+  if(d.activities.length)b+='<span class="label">Activities</span>'+d.activities.map((a,k)=>activityCard(d,a,k,d.activities.length,{actions:true,compact:true})).join('');
+  else b+='<p class="muted" style="margin:0">No activities planned.</p>';
   if(isToday&&showLink)b+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';
   return b+'</div>';
 }
@@ -512,20 +542,18 @@ function menuView(){
 /* ---------- ITINERARY ---------- */
 function itineraryView(){
   const today=dateIn(DEVICE_TZ);
-  const dates=[...new Set(data.days.map(d=>d.date).filter(Boolean))].sort();
+  const days=data.days.slice().sort(byDayOrder);
   let h=top('Itinerary','menu')+'<main>';
-  if(!dates.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
+  if(!days.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
   let prevHotel='';
-  dates.forEach((ds,i)=>{
-    const list=dayEntries(ds);const fl=data.flights.filter(f=>f.date===ds);
-    h+='<div class="card'+(ds===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(ds===today?' · Today':'')+'</span><span class="muted">'+esc(nice(ds))+'</span></div>';
-    list.forEach((d,k)=>{
-      const changed=!!(d.hotelId&&prevHotel&&d.hotelId!==prevHotel);if(d.hotelId)prevHotel=d.hotelId;
-      if(k>0)h+='<hr style="border:0;border-top:1px solid var(--line);margin:4px 0;width:100%">';
-      if(list.length>1)h+='<span class="muted" style="font-size:15px">'+(k+1)+' of '+list.length+'</span>';
-      h+=dayDetails(d,{hotelChanged:changed})+'<button class="btn'+(d.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-id="'+d.id+'" aria-pressed="'+!!d.done+'">'+ic(d.done?'back':'check',20)+(d.done?'Mark as not done':'Mark as done')+'</button>';
-    });
-    h+=fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+'</div>';
+  days.forEach((d,i)=>{
+    const changed=!!(d.hotelId&&prevHotel&&d.hotelId!==prevHotel);if(d.hotelId)prevHotel=d.hotelId;
+    const fl=data.flights.filter(f=>f.date===d.date);const n=d.activities.length;const done=d.activities.filter(a=>a.done).length;
+    h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div>'+
+      dayDetails(d,{hotelChanged:changed})+
+      fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+
+      '<span class="label">Activities'+(n?' · '+done+' of '+n+' done':'')+'</span>'+
+      (n?d.activities.map((a,k)=>activityCard(d,a,k,n,{markable:true})).join(''):'<p class="muted" style="margin:0">No activities planned.</p>')+'</div>';
   });
   h+='</main>';
   return h;
@@ -545,8 +573,8 @@ function configView(){
 /* ---------- generic list editors ---------- */
 const TZS=(()=>{try{return Intl.supportedValuesOf('timeZone')}catch(e){return Object.keys(COORDS)}})();
 const FORMS={
-  days:{title:'Itinerary days',one:'day',sort:byDayOrder,line:d=>[nice(d.date),d.place],fields:[
-    ['date','Date','date',1],['place','Place name','text',1],['location','Location / address','place'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
+  days:{title:'Itinerary days',one:'day',sort:byDayOrder,line:d=>[nice(d.date),(d.activities.length?d.activities.length+' activit'+(d.activities.length===1?'y':'ies')+': '+d.activities.map(a=>a.name).join(', '):'No activities yet')],fields:[
+    ['date','Date','date',1],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
   hotels:{title:'Hotels',one:'hotel',line:h=>[h.name,h.address],fields:[['name','Hotel name','text',1],['address','Address','place'],['phone','Phone (with country code)','tel']]},
   flights:{title:'Flights',one:'flight',sort:(a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')),line:f=>[nice(f.date)+' · '+(f.time||''),f.number+' '+f.from+' → '+f.to],fields:[
     ['date','Date','date',1],['number','Flight number','text',1],['from','From','text'],['to','To','text'],['time','Departure time (local)','time',1],['tz','Departure time zone','tz'],['airport','Airport (for directions)','place'],['notes','Notes for the flight','textarea']]},
@@ -562,19 +590,61 @@ function fieldHtml(f,item){
   if(type==='hotel')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'"><option value="">None</option>'+data.hotels.map(h=>'<option value="'+esc(h.id)+'"'+(h.id===v?' selected':'')+'>'+esc(h.name)+'</option>').join('')+'</select></label>'+(data.hotels.length?'':'<span class="muted">Add hotels first under Configuration › Hotels.</span>');
   if(type==='dose')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'">'+['0','½','1','2','3'].map(o=>'<option'+(String(v||'0')===o?' selected':'')+'>'+o+'</option>').join('')+'</select></label>';
   if(type==='place')return '<div class="f" style="display:flex;flex-direction:column;gap:6px"><label for="'+id+'" style="font-size:17px;font-weight:700">'+label+'</label><input id="'+id+'" data-place="'+k+'" value="'+esc(v)+'" placeholder="Start typing to search" autocomplete="off" style="min-height:52px;border-radius:10px;border:2px solid var(--muted);padding:8px 12px;font-size:18px;background:var(--bg);box-sizing:border-box;width:100%"><div class="sugs" id="sug-'+k+'" role="listbox" aria-label="Suggestions"></div><button type="button" class="btn" style="min-height:48px;font-size:16px" data-act="mapsCheck" data-key="'+k+'">'+ic('pin',20)+'Check on Google Maps</button></div>';
+  if(type==='atype')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'">'+Object.keys(ATYPES).map(k=>'<option value="'+k+'"'+((v||'sight')===k?' selected':'')+'>'+ATYPES[k][0]+'</option>').join('')+'</select></label>';
   if(type==='tz')return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" list="tzlist" value="'+esc(v||DEVICE_TZ)+'" autocomplete="off"></label>';
   return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" type="'+type+'" value="'+esc(v)+'"'+r+(type==='tel'?' inputmode="tel"':'')+'></label>';
 }
 function nextDate(){const ds=data.days.map(d=>d.date).filter(Boolean).sort();const today=dateIn(DEVICE_TZ);if(edit&&edit.kind==='days'&&ds.length){const n=addDays(ds[ds.length-1],1);return n>today?n:today;}return today;}
 function showErr(msg,fieldId){const e=document.getElementById('formerr');if(e)e.textContent=msg;toast(msg);const f=fieldId&&document.getElementById(fieldId);if(f){try{f.scrollIntoView({block:'center'});}catch(x){}f.focus();}}
+const ATYPES={sight:['Sight-seeing','eye'],hotel:['Hotel check-in/out','bed'],travel:['Travel','plane']};
+const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['location','Location / address','place'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea']];
+let actEdit=null,actMove=null;   /* {dayId,id,mode} while adding/editing/copying; {dayId,id} while moving */
+function dayById(id){return data.days.find(d=>d.id===id);}
+function isPast(ds){return ds<dateIn(DEVICE_TZ);}
+function nameTaken(day,name,exceptId){const n=name.trim().toLowerCase();return day.activities.some(a=>a.id!==exceptId&&a.name.trim().toLowerCase()===n);}
+function actHeader(title){return '<div class="top"><button type="button" class="iconbtn" data-act="actCancel" aria-label="Back to the day">'+ic('back')+'</button><h1>'+esc(title)+'</h1></div>';}
+function activityFormView(){
+  const day=dayById(actEdit.dayId);const src=actEdit.id?day.activities.find(a=>a.id===actEdit.id):null;
+  let item=src;if(actEdit.mode==='copy'&&src){item=Object.assign({},src,{name:src.name+' (copy)',done:false});}
+  const title=actEdit.mode==='copy'?'Copy activity':src?'Edit activity':'Add activity';
+  let h=actHeader(title)+'<main><p class="muted" style="margin:0">'+esc(nice(day.date))+'</p><form data-form="activity" novalidate>'+AFIELDS.map(f=>fieldHtml(f,item)).join('');
+  if(actEdit.mode==='copy')h+='<p class="muted" style="margin:0;font-size:15px">The copy is added to the same day. Give it a name that is not used on this day.</p>';
+  h+='<p class="ferr" id="formerr" role="alert"></p><button class="btn primary" type="button" data-act="submitForm">Save activity</button><button class="btn" type="button" data-act="actCancel">Cancel</button></form></main>';
+  return h;
+}
+function activityMoveView(){
+  const day=dayById(actMove.dayId);const a=day.activities.find(x=>x.id===actMove.id);
+  const targets=data.days.filter(d=>d.id!==day.id&&!isPast(d.date)).sort(byDayOrder);
+  let h=actHeader('Move activity')+'<main><div class="card"><span class="label">Moving</span><b style="font-size:19px">'+esc(a.name)+'</b><span class="muted">From '+esc(nice(day.date))+'</span></div>';
+  if(!targets.length)h+='<p class="muted">There is no other day from today onwards to move it to. Add a day first.</p>';
+  else h+='<span class="label">Move to</span>'+targets.map(d=>{const clash=nameTaken(d,a.name);return '<button class="btn" style="justify-content:space-between'+(clash?';opacity:.55':'')+'" data-act="actMoveTo" data-to="'+d.id+'"'+(clash?' disabled':'')+'><span>'+esc(nice(d.date))+'</span><span class="muted" style="font-size:15px;font-weight:400">'+(clash?'Same name already on this day':d.activities.length+' activit'+(d.activities.length===1?'y':'ies'))+'</span></button>';}).join('');
+  h+='<p class="muted" style="margin:0;font-size:15px">Past days are not listed.</p><button class="btn" data-act="actCancel">Cancel</button></main>';
+  return h;
+}
+function activitiesEditor(day){
+  const n=day.activities.length;
+  let h='<div class="card" style="gap:10px"><div class="row"><span class="label grow">Activities ('+n+')</span></div>';
+  if(!n)h+='<p class="muted" style="margin:0">No activities yet. Add the first one below.</p>';
+  day.activities.forEach((a,k)=>{const t=ATYPES[a.type]||ATYPES.sight;
+    h+='<div class="note" style="gap:8px"><div class="row" style="align-items:flex-start"><span style="display:flex;flex-direction:column;gap:4px"><button class="iconbtn" style="width:44px;height:40px'+(k===0?';opacity:.35':'')+'" data-act="actOrder" data-dir="-1" data-id="'+a.id+'" aria-label="Visit earlier"'+(k===0?' disabled':'')+'>'+ic('up',18)+'</button><button class="iconbtn" style="width:44px;height:40px'+(k===n-1?';opacity:.35':'')+'" data-act="actOrder" data-dir="1" data-id="'+a.id+'" aria-label="Visit later"'+(k===n-1?' disabled':'')+'>'+ic('down',18)+'</button></span>'+
+      '<span class="grow" style="min-width:0"><span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(k+1)+'. '+t[0]+(a.done?' · Completed':'')+'</span><b style="font-size:18px;overflow-wrap:anywhere">'+esc(a.name)+'</b>'+(a.location?'<br><span class="muted" style="font-size:15px;overflow-wrap:anywhere">'+esc(a.location)+'</span>':'')+'</span></div>'+
+      (pendingDelete===a.id?'<button class="btn danger" data-act="actDel" data-id="'+a.id+'">Tap to delete '+esc(a.name)+'</button>':
+      '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px"><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="actEdit" data-id="'+a.id+'">'+ic('edit',18)+'Edit</button><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="actCopy" data-id="'+a.id+'">'+ic('copy',18)+'Copy</button><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="actMove" data-id="'+a.id+'">'+ic('move',18)+'Move</button><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="armDel" data-id="'+a.id+'">'+ic('trash',18)+'Delete</button></div>')+'</div>';});
+  h+='<button class="btn primary" data-act="actAdd">'+ic('plus',22)+'Add activity</button></div>';
+  return h;
+}
 function listView(kind){
   const F=FORMS[kind];const list=data[kind];
+  if(kind==='days'&&actEdit&&dayById(actEdit.dayId))return activityFormView();
+  if(kind==='days'&&actMove&&dayById(actMove.dayId))return activityMoveView();
   if(edit&&edit.kind===kind){
     const item=edit.id?list.find(x=>x.id===edit.id):null;
     let h=top((item?'Edit ':'Add ')+F.one,kind)+'<main><form data-form="'+kind+'" novalidate>'+F.fields.map(f=>fieldHtml(f,item)).join('');
     if(kind==='flights'||kind==='days'&&false){}
     h+='<datalist id="tzlist">'+TZS.map(t=>'<option value="'+esc(t)+'">').join('')+'</datalist>';
-    h+='<p class="ferr" id="formerr" role="alert"></p><button class="btn primary" type="button" data-act="submitForm">Save</button><button class="btn" type="button" data-act="cancelEdit">Cancel</button></form></main>';
+    h+='<p class="ferr" id="formerr" role="alert"></p><button class="btn primary" type="button" data-act="submitForm">'+(kind==='days'?'Save day':'Save')+'</button><button class="btn" type="button" data-act="cancelEdit">'+(kind==='days'&&item?'Done':'Cancel')+'</button></form>';
+    if(kind==='days')h+=item?activitiesEditor(item):'<p class="muted" style="margin:0">Save the day first, then add its activities.</p>';
+    h+='</main>';
     return h;
   }
   const items=F.sort?list.slice().sort(F.sort):list;
@@ -622,7 +692,7 @@ function shareText(){
   if(sel.meds){const al=data.allergies;if(data.meds.length||al.food||al.medication){L.push('','*Critical medicines*');
     data.meds.forEach(m=>L.push('• '+m.name+' – '+(m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+' (morning-afternoon-night)'+(m.note?', '+m.note:'')));
     if(al.food)L.push('Food allergy: '+al.food);if(al.medication)L.push('Medicine allergy: '+al.medication);}}
-  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+': '+d.place+(d.location?', '+d.location:'')+(h?' · Hotel: '+h.name:'')+(d.done?' (done)':''));});}}
+  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+(h?' · Hotel: '+h.name:''));d.activities.forEach(a=>L.push('   - '+a.name+(a.location?', '+a.location:'')+(a.done?' (done)':'')));});}}
   if(sel.hotels&&data.hotels.length){L.push('','*Hotels*');data.hotels.forEach(h=>L.push('• '+h.name+(h.address?', '+h.address:'')+(h.phone?' · '+h.phone:'')));}
   if(sel.flights){const fs=upcomingFlights();if(fs.length){L.push('','*Flights*');fs.forEach(f=>L.push('• '+nice(f.date)+' '+(f.time||'')+' · '+f.number+' '+f.from+' → '+f.to+(f.notes?' · '+f.notes:'')));}}
   L.push('','Sent from Travel Companion');
@@ -772,7 +842,15 @@ document.addEventListener('click',e=>{
   if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';render();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
-  if(a==='toggleDone'){const it=data.days.find(x=>x.id===b.dataset.id);if(!it)return;it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
+  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
+  if(a==='actAdd'){actEdit={dayId:edit.id,id:null,mode:'new'};pendingDelete=null;render();window.scrollTo(0,0);return;}
+  if(a==='actEdit'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'edit'};pendingDelete=null;render();window.scrollTo(0,0);return;}
+  if(a==='actCopy'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'copy'};pendingDelete=null;render();window.scrollTo(0,0);return;}
+  if(a==='actMove'){actMove={dayId:edit.id,id:b.dataset.id};pendingDelete=null;render();window.scrollTo(0,0);return;}
+  if(a==='actCancel'){actEdit=null;actMove=null;render();return;}
+  if(a==='actDel'){const day=dayById(edit.id);day.activities=day.activities.filter(x=>x.id!==b.dataset.id);pendingDelete=null;data.sample=false;save();toast('Activity deleted');render();return;}
+  if(a==='actOrder'){const day=dayById(edit.id);const k=day.activities.findIndex(x=>x.id===b.dataset.id),j=k+(+b.dataset.dir);if(k<0||j<0||j>=day.activities.length)return;const t=day.activities[k];day.activities[k]=day.activities[j];day.activities[j]=t;data.sample=false;save();render();return;}
+  if(a==='actMoveTo'){const from=dayById(actMove.dayId),to=dayById(b.dataset.to);const it=from.activities.find(x=>x.id===actMove.id);if(!it||!to||isPast(to.date))return;if(nameTaken(to,it.name)){toast('That day already has an activity with this name.');return;}from.activities=from.activities.filter(x=>x.id!==it.id);to.activities.push(it);actMove=null;data.sample=false;if(save())toast('Moved to '+nice(to.date));render();return;}
   if(a==='dMove'){const it=data.days.find(x=>x.id===b.dataset.id);if(!it)return;const sib=dayEntries(it.date);sib.forEach((x,i)=>x.o=i);const k=sib.indexOf(it),j=k+(+b.dataset.dir);if(j<0||j>=sib.length)return;const t=sib[k].o;sib[k].o=sib[j].o;sib[j].o=t;data.sample=false;save();render();return;}
   if(a==='zDel'){data.zones.splice(+b.dataset.i,1);save();render();return;}
   if(a==='tourNext'){tourStep=Math.min(TOUR.length-1,tourStep+1);render();return;}
@@ -810,6 +888,16 @@ function handleSubmit(form){
   if(kind==='zone'){const tz=val('z-tz');if(!validTz(tz)||!tz){document.getElementById('zerr').textContent='Pick a time zone from the list, for example Asia/Dubai.';return;}const nz={label:val('z-label')||zoneName(tz),tz};if(document.getElementById('z-home').checked){data.zones.forEach(z=>z.home=false);nz.home=true;}data.zones.push(nz);if(save())toast('Time zone added');render();geocode(nz.label).then(c=>{if(c){nz.lat=c[0];nz.lon=c[1];save();render();}});return;}
   if(kind==='allergies'){data.allergies={food:val('al-food'),medication:val('al-med')};if(save())toast('Allergies saved');render();return;}
   if(kind==='group'){const l=val('g-link');if(l&&!/^https:\/\//.test(l)){document.getElementById('gerr').textContent='The link should start with https://';return;}data.group={name:val('g-name'),link:l};if(save())toast('Group saved');render();return;}
+  if(kind==='activity'){
+    const day=dayById(actEdit.dayId);if(!day)return;const isEdit=actEdit.mode==='edit';const src=actEdit.id?day.activities.find(a=>a.id===actEdit.id):null;
+    const out=isEdit&&src?Object.assign({},src):{id:uid(),done:false};
+    for(const [k,label,type,req] of AFIELDS){const v=val('f-'+k);if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save activity.','f-'+k);return;}out[k]=v;}
+    if(nameTaken(day,out.name,isEdit?out.id:null)){showErr('An activity called "'+out.name+'" is already on this day. Use a different name.','f-name');return;}
+    if(isEdit)day.activities=day.activities.map(a=>a.id===out.id?out:a);
+    else if(actEdit.mode==='copy'){const at=day.activities.findIndex(a=>a.id===actEdit.id);day.activities.splice(at+1,0,out);}
+    else day.activities.push(out);
+    data.sample=false;actEdit=null;if(save())toast(isEdit?'Activity saved':'Activity added');render();window.scrollTo(0,0);return;
+  }
   const F=FORMS[kind];if(!F)return;
   const item=edit&&edit.id?data[kind].find(x=>x.id===edit.id):null;
   const out=item?Object.assign({},item):{id:uid()};
@@ -820,7 +908,12 @@ function handleSubmit(form){
     if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save.','f-'+k);return;}
     if(type==='tz'&&v&&!validTz(v)){showErr('Pick a time zone from the list, for example Asia/Dubai.','f-'+k);return;}
     out[k]=v;}
-  if(kind==='days'&&(!item||item.date!==out.date)){const sib=data.days.filter(x=>x.date===out.date&&x.id!==out.id);out.o=sib.length?Math.max(...sib.map(x=>x.o||0))+1:0;}
+  if(kind==='days'){
+    if(data.days.some(x=>x.date===out.date&&x.id!==out.id)){showErr('There is already a day for '+nice(out.date)+'. Open that day to add activities to it.','f-date');return;}
+    if(!Array.isArray(out.activities))out.activities=[];
+    if(item){data.days=data.days.map(x=>x.id===item.id?out:x);}else data.days.push(out);
+    data.sample=false;draftPhotos={};edit={kind:'days',id:out.id};if(save())toast(item?'Day saved':'Day saved. Now add its activities.');render();window.scrollTo(0,0);return;
+  }
   if(item){data[kind]=data[kind].map(x=>x.id===item.id?out:x);}else data[kind].push(out);
   edit=null;draftPhotos={};if(save())toast('Saved');render();window.scrollTo(0,0);
 }
