@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.22';
+const BUILD='UAT build 0.23';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -340,14 +340,15 @@ const PARENT={share:'menu',location:'menu',units:'config',menu:'home',itinerary:
 function valid(r){return (r==='home'||PARENT[r])?r:'home';}
 let cur=(()=>{try{return valid((location.hash||'').slice(1));}catch(e){return 'home';}})();
 function route(){return cur;}
-function resetUi(){shareSel=null;exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
+function resetUi(){photoOpen=null;shareSel=null;exportSel=null;profileOpen=false;edit=null;draftPhotos={};pendingDelete=null;importArmed=null;resetArmed=null;}
 function go(r,fromHistory){r=valid(r);if(r==='menu')tourOpen=false;const changed=r!==cur;cur=r;resetUi();
   if(!fromHistory&&changed){try{history.pushState({r:r},'','#'+r);}catch(e){}}
   render();try{window.scrollTo(0,0);}catch(e){}}
 
 /* ---------- shared bits ---------- */
 function top(title,back){return '<div class="top"><a class="iconbtn" href="#'+back+'" aria-label="Back">'+ic('back')+'</a><h1>'+esc(title)+'</h1></div>';}
-function photoBox(src,w,h,label){return '<div class="ph" style="width:'+w+';height:'+h+'">'+(src?'<img alt="" src="'+esc(src)+'">':esc(label||'No photo'))+'</div>';}
+function photoBox(src,w,h,label){if(!src)return '<div class="ph" style="width:'+w+';height:'+h+'">'+esc(label||'No photo')+'</div>';photoStore.push(src);return '<button type="button" class="ph" data-act="viewPhoto" data-p="'+(photoStore.length-1)+'" aria-label="Open '+esc(label||'photo')+'" style="width:'+w+';height:'+h+';padding:0;border:0;cursor:zoom-in"><img alt="" src="'+esc(src)+'"></button>';}
+let photoStore=[],photoOpen=null;
 function waNum(p){return (p||'').replace(/[^\d]/g,'');}
 function telHref(p){return 'tel:'+(p||'').replace(/[^\d+]/g,'');}
 function emptyRow(icon,title,to){return '<a class="empty" href="#'+to+'">'+ic(icon,24)+'<span class="grow"><b>'+esc(title)+': nothing added</b>Add it from Configuration</span>'+ic('plus',22)+'</a>';}
@@ -380,17 +381,17 @@ function homeView(){
   if(di.day&&di.set){dl='Daylight until '+fmtTime(DEVICE_TZ,di.set)+' · '+dur(di.set-now)+' left';}
   else if(!di.day&&di.rise){dl='Sunrise at '+fmtTime(DEVICE_TZ,di.rise);}
   const dn=di.day?'Day':'Night';
-  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:18px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Turn on Location to see temperature and weather alerts</span>':'')+'</span>'+tstack('<span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span>',DEVICE_TZ,now)+'</div>'+
+  h+='<section class="sec"><div class="card strong"><div class="row"><span role="img" aria-label="'+dn+'">'+ic(di.day?'sun':'moon',30,di.day?'sun':'moon')+'</span><span class="grow"><b style="font-size:17px">Local · '+esc(live.place?live.place.split(',')[0]:zoneName(DEVICE_TZ))+'</b>'+(dl?'<br><span class="muted" style="font-size:15px">'+dl+'</span>':'')+(locOff()?'<br><span class="muted" style="font-size:15px">Turn on Location to see temperature and weather alerts</span>':'')+'</span>'+tstack('<span class="big" style="font-size:26px">'+fmtTime(DEVICE_TZ,now)+'</span>',DEVICE_TZ,now)+'</div>'+
      weatherBlock()+'</div>';
   const hz=data.zones.find(z=>z.home&&validTz(z.tz));
   if(hz){const hd=zoneDay(hz,now);const hn=hz.label||zoneName(hz.tz);
-    h+='<div class="card strong" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span>'+tstack('<span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span>',hz.tz,now,'flex-start')+'<span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
+    h+='<div class="card strong" style="flex-direction:row;align-items:center;gap:12px"><span role="img" aria-label="'+(hd?'Day':'Night')+'">'+ic(hd?'sun':'moon',26,hd?'sun':'moon')+'</span>'+tstack('<span style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">'+fmtTime(hz.tz,now)+'</span>',hz.tz,now,'flex-start')+'<span class="grow" style="min-width:0"><span class="label">Home</span><br><b style="overflow-wrap:anywhere;font-size:17px">'+esc(hn)+'</b></span>'+zoneWx(hn)+'</div>';}
   h+='</section>';
 
   /* Other zones */
   const zs=data.zones.filter(z=>validTz(z.tz)&&!z.home);
   if(zs.length){
-    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);const n=z.label||zoneName(z.tz);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span>'+tstack('<span class="t">'+fmtTime(z.tz,now)+'</span>',z.tz,now,'flex-start')+'</div><b style="overflow-wrap:anywhere">'+esc(n)+'</b>'+zoneWx(n)+'</div>'}).join('')+'</div>';
+    const body='<div class="grid2">'+zs.map(z=>{const d=zoneDay(z,now);const n=z.label||zoneName(z.tz);return '<div class="zone"><div class="row" style="gap:8px"><span role="img" aria-label="'+(d?'Day':'Night')+'">'+ic(d?'sun':'moon',24,d?'sun':'moon')+'</span>'+tstack('<span class="t">'+fmtTime(z.tz,now)+'</span>',z.tz,now,'flex-start')+'</div><b style="overflow-wrap:anywhere;font-size:17px">'+esc(n)+'</b>'+zoneWx(n)+'</div>'}).join('')+'</div>';
     h+=section('zones','globe','Other time zones',esc(zs.map(z=>z.label||zoneName(z.tz)).join(' · ')),zs.length,body);
   } else missing.push('Other time zones');
 
@@ -479,6 +480,8 @@ function dayDetails(d,opts){
   return b;
 }
 function dayCard(d,isToday,hotelChanged,showLink){
+  if(d.done){let c='<div class="card" style="gap:6px"><span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:20px;text-decoration:line-through;opacity:.8">'+esc(d.place)+'</b><span class="muted" style="font-size:15px">Details in Menu › View itinerary</span>';
+    if(isToday&&showLink)c+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';return c+'</div>';}
   let b='<div class="card">'+dayDetails(d,{actions:true,hotelChanged,tomorrow:!isToday});
   if(isToday&&showLink)b+='<a href="#itinerary" style="font-weight:700;min-height:48px;display:flex;align-items:center">See full itinerary</a>';
   return b+'</div>';
@@ -596,7 +599,7 @@ function profileView(){
   const p=data.profile;const cur='photo' in draftPhotos?draftPhotos.photo:p.photo;
   let h=top('Profile','config')+'<main><form data-form="profile" class="card"><span class="label">My profile</span><div class="row">'+(cur?'<img class="avatar" style="width:88px;height:88px" alt="" src="'+esc(cur)+'">':'<div class="avatar" style="width:88px;height:88px">'+ic('user',36)+'</div>')+
    '<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="f-photo">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="f-photo" data-photo="photo" hidden>'+(cur?'<button type="button" class="btn" data-act="rmPhoto" data-key="photo">Remove photo</button>':'')+'</span></div>'+
-   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<input id="f-nat" value="'+esc(p.nationality)+'" placeholder="e.g. Indian"></label><p class="muted" style="margin:0;font-size:15px">Used for the Connect to Embassy button.</p><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
+   '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<select id="f-nat">'+['','Indian'].concat(p.nationality&&p.nationality!=='Indian'?[p.nationality]:[]).map(v=>'<option value="'+esc(v)+'"'+(v===(p.nationality||'')?' selected':'')+'>'+(v?esc(v):'Not set')+'</option>').join('')+'</select></label><p class="muted" style="margin:0;font-size:15px">Used for the Connect to Embassy button.</p><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form></main>';
   return h;
 }
 /* ---------- send critical info ---------- */
@@ -717,7 +720,7 @@ function helpView(k){
 }
 
 /* ---------- render ---------- */
-function render(){
+function render(){photoStore=[];
   const r=route();const app=document.getElementById('app');
   let h;
   if(r==='home')h=homeView();
@@ -734,6 +737,7 @@ function render(){
   else if(HELP[r])h=helpView(r);
   else if(FORMS[r])h=listView(r);
   else h=homeView();
+  if(photoOpen)h+='<div class="overlay" data-act="closePhoto"><div class="sheet" role="dialog" aria-modal="true" aria-label="Photo"><img alt="" src="'+esc(photoOpen)+'" style="max-width:100%;max-height:65vh;border-radius:12px;object-fit:contain"><button type="button" class="btn" data-act="closePhoto">Close</button></div></div>';
   app.innerHTML='<div class="app-inner">'+h+'</div>';
 }
 window.addEventListener('online',()=>refreshWeather(true));
@@ -750,6 +754,8 @@ function shrink(file){return new Promise((res,rej)=>{const fr=new FileReader();f
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
   if(a==='toggle'){const k=b.dataset.key;open[k]=!open[k];render();const hb=document.querySelector('[data-act=toggle][data-key="'+k+'"]');if(hb){try{hb.focus({preventScroll:true});}catch(x){}try{hb.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}catch(x){hb.scrollIntoView();}}return;}
+  if(a==='viewPhoto'){photoOpen=photoStore[+b.dataset.p]||null;render();const c=document.querySelector('.sheet .btn');if(c)c.focus();return;}
+  if(a==='closePhoto'){if(e.target.closest('.sheet')&&b.classList.contains('overlay'))return;photoOpen=null;render();return;}
   if(a==='openProfile'){profileOpen=true;render();const c=document.querySelector('.sheet .btn');if(c)c.focus();return;}
   if(a==='closeProfile'){if(e.target.closest('.sheet')&&b.classList.contains('overlay'))return;profileOpen=false;render();return;}
   if(a==='setUnit'){data.settings[b.dataset.k]=b.dataset.v;if(save())toast('Saved');render();return;}
@@ -796,7 +802,7 @@ document.addEventListener('change',async e=>{
   if(el.dataset&&el.dataset.sec&&importArmed){importArmed.sel[el.dataset.sec]=el.checked;render();return;}
 });
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('form[data-form]');if(f)handleSubmit(f);});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&profileOpen){profileOpen=false;render();return;}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&photoOpen){photoOpen=null;render();return;}if(e.key==='Escape'&&profileOpen){profileOpen=false;render();return;}});
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('form[data-form] input:not([type=checkbox]):not([type=file])'))return;e.preventDefault();handleSubmit(e.target.closest('form[data-form]'));});
 function handleSubmit(form){
   const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
