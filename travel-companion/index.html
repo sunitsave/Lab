@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.27';
+const BUILD='UAT build 0.28';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -489,7 +489,9 @@ function activityCard(day,a,k,n,opts){
   const head='<span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(n>1?(k+1)+' of '+n+' · ':'')+t[0]+'</span>';
   if(a.done&&opts.compact)return '<div class="note" style="gap:4px">'+head+'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b><span class="muted" style="font-size:15px">Details in Menu › View itinerary</span></div>';
   let b='<div class="note" style="gap:8px">'+head+(a.done?'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span>':'')+'<b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
-  if(a.location)b+=(isUrl(a.location)?'':'<span class="muted">'+esc(a.location)+'</span>')+mapsBtn(a.location,'Open in Google Maps');
+  if(a.address)b+='<span class="muted">'+esc(a.address)+'</span>';
+  if(a.location)b+=(isUrl(a.location)||a.address?'':'<span class="muted">'+esc(a.location)+'</span>')+mapsBtn(a.location,'Open in Google Maps');
+  else if(a.address)b+=mapsBtn(a.address,'Open in Google Maps');
   if(a.about)b+='<span><span class="label">About</span><br>'+esc(a.about)+'</span>';
   if(a.ticket)b+='<span><span class="label">Ticket suggestion</span><br>'+esc(a.ticket)+'</span>';
   if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
@@ -579,8 +581,8 @@ function fieldHtml(f,item){
   if(type==='place'){const q=f[4]||'f-name';const old=v&&!isUrl(v);return '<div class="f" style="display:flex;flex-direction:column;gap:8px"><label for="'+id+'" style="font-size:17px;font-weight:700">'+label+'</label>'+
     '<input id="'+id+'" type="url" inputmode="url" value="'+(old?'':esc(v))+'" placeholder="https://maps.app.goo.gl/…" autocomplete="off" style="min-height:52px;border-radius:10px;border:2px solid var(--muted);padding:8px 12px;font-size:17px;background:var(--bg);box-sizing:border-box;width:100%">'+
     (old?'<span class="muted" style="font-size:15px">Saved address: '+esc(v)+'. Find it on Google Maps and paste the link, or leave this box empty to keep the address.</span><input type="hidden" id="'+id+'-old" value="'+esc(v)+'">':'')+
-    '<div class="grid2"><button type="button" class="btn" style="min-height:48px;font-size:16px" data-act="mapsFind" data-q="'+q+'">'+ic('search',20)+'Find on Google Maps</button><button type="button" class="btn" style="min-height:48px;font-size:16px" data-act="mapsPaste" data-key="'+k+'">'+ic('copy',20)+'Paste link</button></div>'+
-    '<span class="muted" style="font-size:15px">In Google Maps, open the place, tap Share, then Copy link, and paste it here.</span></div>';}
+    '<div class="grid2"><button type="button" class="btn" style="min-height:48px;font-size:16px" data-act="mapsFind" data-key="'+k+'" data-q="'+q+'">'+ic('search',20)+'Find on Google Maps</button><button type="button" class="btn" style="min-height:48px;font-size:16px" data-act="mapsPaste" data-key="'+k+'">'+ic('copy',20)+'Paste link</button></div>'+
+    '<span class="muted" style="font-size:15px">Find on Google Maps opens the saved link, or searches when there is none. In Google Maps tap Share, then Copy link, and paste it here.</span></div>';}
   if(type==='atype')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'">'+Object.keys(ATYPES).map(k=>'<option value="'+k+'"'+((v||'sight')===k?' selected':'')+'>'+ATYPES[k][0]+'</option>').join('')+'</select></label>';
   if(type==='tz')return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" list="tzlist" value="'+esc(v||DEVICE_TZ)+'" autocomplete="off"></label>';
   return '<label class="f" for="'+id+'">'+label+'<input id="'+id+'" type="'+type+'" value="'+esc(v)+'"'+r+(type==='tel'?' inputmode="tel"':'')+'></label>';
@@ -588,7 +590,7 @@ function fieldHtml(f,item){
 function nextDate(){const ds=data.days.map(d=>d.date).filter(Boolean).sort();const today=dateIn(DEVICE_TZ);if(edit&&edit.kind==='days'&&ds.length){const n=addDays(ds[ds.length-1],1);return n>today?n:today;}return today;}
 function showErr(msg,fieldId){const e=document.getElementById('formerr');if(e)e.textContent=msg;toast(msg);const f=fieldId&&document.getElementById(fieldId);if(f){try{f.scrollIntoView({block:'center'});}catch(x){}f.focus();}}
 const ATYPES={sight:['Sight-seeing','eye'],hotel:['Hotel check-in/out','bed'],travel:['Travel','plane'],doc:['Documentation','doc'],other:['Others','dots']};
-const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['location','Location (Google Maps link)','place',0,'f-name'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea']];
+const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['address','Address','text'],['location','Location (Google Maps link)','place',0,'f-address,f-name'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea']];
 let actEdit=null,actMove=null;   /* {dayId,id,mode} while adding/editing/copying; {dayId,id} while moving */
 function dayById(id){return data.days.find(d=>d.id===id);}
 function isPast(ds){return ds<dateIn(DEVICE_TZ);}
@@ -618,7 +620,7 @@ function activitiesEditor(day){
   if(!n)h+='<p class="muted" style="margin:0">No activities yet. Add the first one below.</p>';
   day.activities.forEach((a,k)=>{const t=ATYPES[a.type]||ATYPES.sight;
     h+='<div class="note" style="gap:8px"><div class="row" style="align-items:flex-start"><span style="display:flex;flex-direction:column;gap:4px"><button class="iconbtn" style="width:44px;height:40px'+(k===0?';opacity:.35':'')+'" data-act="actOrder" data-dir="-1" data-id="'+a.id+'" aria-label="Visit earlier"'+(k===0?' disabled':'')+'>'+ic('up',18)+'</button><button class="iconbtn" style="width:44px;height:40px'+(k===n-1?';opacity:.35':'')+'" data-act="actOrder" data-dir="1" data-id="'+a.id+'" aria-label="Visit later"'+(k===n-1?' disabled':'')+'>'+ic('down',18)+'</button></span>'+
-      '<span class="grow" style="min-width:0"><span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(k+1)+'. '+t[0]+(a.done?' · Completed':'')+'</span><b style="font-size:18px;overflow-wrap:anywhere">'+esc(a.name)+'</b>'+(a.location?'<br><span class="muted" style="font-size:15px;overflow-wrap:anywhere">'+(isUrl(a.location)?'Google Maps link added':esc(a.location))+'</span>':'')+'</span></div>'+
+      '<span class="grow" style="min-width:0"><span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(k+1)+'. '+t[0]+(a.done?' · Completed':'')+'</span><b style="font-size:18px;overflow-wrap:anywhere">'+esc(a.name)+'</b>'+(a.location?'<br><span class="muted" style="font-size:15px;overflow-wrap:anywhere">'+(a.address?esc(a.address)+(isUrl(a.location)?' · map link added':''):isUrl(a.location)?'Google Maps link added':esc(a.location))+'</span>':'')+'</span></div>'+
       (pendingDelete===a.id?'<button class="btn danger" data-act="actDel" data-id="'+a.id+'">Tap to delete '+esc(a.name)+'</button>':
       '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px"><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="actEdit" data-id="'+a.id+'">'+ic('edit',18)+'Edit</button><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="actCopy" data-id="'+a.id+'">'+ic('copy',18)+'Copy</button><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="actMove" data-id="'+a.id+'">'+ic('move',18)+'Move</button><button class="btn" style="min-height:48px;font-size:14px;padding:0 4px;flex-direction:column;gap:2px" data-act="armDel" data-id="'+a.id+'">'+ic('trash',18)+'Delete</button></div>')+'</div>';});
   h+='<button class="btn primary" data-act="actAdd">'+ic('plus',22)+'Add activity</button></div>';
@@ -683,7 +685,7 @@ function shareText(){
   if(sel.meds){const al=data.allergies;if(data.meds.length||al.food||al.medication){L.push('','*Critical medicines*');
     data.meds.forEach(m=>L.push('• '+m.name+' – '+(m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+' (morning-afternoon-night)'+(m.note?', '+m.note:'')));
     if(al.food)L.push('Food allergy: '+al.food);if(al.medication)L.push('Medicine allergy: '+al.medication);}}
-  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+(h?' · Hotel: '+h.name:''));d.activities.forEach(a=>L.push('   - '+a.name+(a.location?', '+a.location:'')+(a.done?' (done)':'')));});}}
+  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+(h?' · Hotel: '+h.name:''));d.activities.forEach(a=>L.push('   - '+a.name+(a.address?', '+a.address:'')+(a.location?', '+a.location:'')+(a.done?' (done)':'')));});}}
   if(sel.hotels&&data.hotels.length){L.push('','*Hotels*');data.hotels.forEach(h=>L.push('• '+h.name+(h.address?', '+h.address:'')+(h.phone?' · '+h.phone:'')));}
   if(sel.flights){const fs=upcomingFlights();if(fs.length){L.push('','*Flights*');fs.forEach(f=>L.push('• '+nice(f.date)+' '+(f.time||'')+' · '+f.number+' '+f.from+' → '+f.to+(f.notes?' · '+f.notes:'')));}}
   L.push('','Sent from Travel Companion');
@@ -854,7 +856,10 @@ document.addEventListener('click',e=>{
   if(a==='tourPrev'){tourStep=Math.max(0,tourStep-1);render();return;}
   if(a==='submitForm'){const f=b.closest('form[data-form]');if(f)handleSubmit(f);return;}
   if(a==='wxRetry'){refreshWeather(true);return;}
-  if(a==='mapsFind'){const q=(document.getElementById(b.dataset.q)||{}).value||'';const l=document.createElement('a');l.href='https://www.google.com/maps/search/?api=1&query='+enc(q.trim()||'');l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return;}
+  if(a==='mapsFind'){const link=(document.getElementById('f-'+b.dataset.key)||{}).value||'';let url;
+    if(isUrl(link.trim()))url=link.trim();
+    else{const q=(b.dataset.q||'').split(',').map(id=>((document.getElementById(id)||{}).value||'').trim()).find(Boolean)||'';const old=(document.getElementById('f-'+b.dataset.key+'-old')||{}).value||'';url='https://www.google.com/maps/search/?api=1&query='+enc(q||old);}
+    const l=document.createElement('a');l.href=url;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove();return;}
   if(a==='mapsPaste'){const f=document.getElementById('f-'+b.dataset.key);const fail=()=>{if(f){f.focus();}toast('Long-press the box and tap Paste.');};try{navigator.clipboard.readText().then(t=>{t=(t||'').trim();const m=t.match(/https?:\/\/\S+/);if(f&&m){f.value=m[0];toast(isMapsUrl(m[0])?'Link pasted':'Pasted. This does not look like a Google Maps link.');}else fail();},fail);}catch(e){fail();}return;}
   if(a==='export'){doExport();return;}
   if(a==='doImport'){doImport();return;}
