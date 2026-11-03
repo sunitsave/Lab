@@ -103,6 +103,7 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .navitem .s{font-size:15px;color:var(--muted);display:block}
 .subitem{min-height:66px;display:flex;align-items:center;gap:14px;padding:0 12px;border-radius:12px;background:var(--panel);text-decoration:none;color:var(--ink)}
 .subitem .t{font-size:19px;font-weight:700;display:block}.subitem .s{font-size:15px;color:var(--muted);display:block}
+.cfggroup{border-bottom:1px solid var(--line);padding-bottom:4px}.cfggroup .navitem{border-bottom:0}
 .grouplabel{margin:14px 0 2px;font-size:15px;font-weight:700;color:var(--muted);letter-spacing:.04em}
 form{display:flex;flex-direction:column;gap:14px}
 label.f{display:flex;flex-direction:column;gap:6px;font-size:17px;font-weight:700}
@@ -132,7 +133,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.33';
+const BUILD='UAT build 0.34';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -572,10 +573,10 @@ function itineraryView(){
 function configView(){
   const row=(r,i,t,s)=>'<a class="navitem" href="#'+r+'">'+ic(i,28)+'<span class="grow"><span class="t">'+t+'</span><span class="s">'+s+'</span></span>'+ic('chev',22)+'</a>';
   return top('Configuration','menu')+'<main><nav class="navlist" aria-label="Configuration">'+
-   '<div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name and photo')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+row('units','sliders','Units','Temperature '+(data.settings.temp==='F'?'°F':'°C')+' · distance '+(data.settings.dist==='mi'?'miles':'kilometres'))+
-   '<div class="grouplabel">TRIP</div>'+row('days','cal','Itinerary days',data.days.length+' days · tickets, clothes, accessories')+row('hotels','bed','Hotels',data.hotels.length+' hotels')+row('flights','plane','Flights',data.flights.length+' flights')+
-   '<div class="grouplabel">SAFETY</div>'+row('meds','pill','Critical medication',data.meds.length+' medicines · allergies')+row('contacts','phone','Emergency contacts',data.contacts.length+' contacts')+row('group','group','Tour WhatsApp group',data.group.link?'Link added':'No link yet')+
-   '<div class="grouplabel">BACKUP</div>'+row('backup','dl','Export / Import','Save or load a .zip with data and photos')+
+   '<div class="cfggroup"><div class="grouplabel">ABOUT ME</div>'+row('profile','user','Profile','Name and photo')+row('zones','globe','Time zones',data.zones.length+' zones · order on home screen')+row('units','sliders','Units','Temperature '+(data.settings.temp==='F'?'°F':'°C')+' · distance '+(data.settings.dist==='mi'?'miles':'kilometres'))+'</div>'+
+   '<div class="cfggroup"><div class="grouplabel">TRIP</div>'+row('days','cal','Itinerary days',data.days.length+' days · tickets, clothes, accessories')+row('hotels','bed','Hotels',data.hotels.length+' hotels')+row('flights','plane','Flights',data.flights.length+' flights')+'</div>'+
+   '<div class="cfggroup"><div class="grouplabel">SAFETY</div>'+row('meds','pill','Critical medication',data.meds.length+' medicines · allergies')+row('contacts','phone','Emergency contacts',data.contacts.length+' contacts')+row('group','group','Tour WhatsApp group',data.group.link?'Link added':'No link yet')+'</div>'+
+   '<div class="cfggroup"><div class="grouplabel">BACKUP</div>'+row('backup','dl','Export / Import','Save or load a .zip with data and photos')+'</div>'+
    '</nav><p class="foot">Changes are saved on this phone as soon as you tap Save.</p></main>';
 }
 
