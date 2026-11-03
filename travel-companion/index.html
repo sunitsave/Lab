@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.28';
+const BUILD='UAT build 0.29';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -487,7 +487,7 @@ function dayDetails(d,opts){
 function activityCard(day,a,k,n,opts){
   opts=opts||{};const t=ATYPES[a.type]||ATYPES.sight;
   const head='<span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(n>1?(k+1)+' of '+n+' · ':'')+t[0]+'</span>';
-  if(a.done&&opts.compact)return '<div class="note" style="gap:4px">'+head+'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b><span class="muted" style="font-size:15px">Details in Menu › View itinerary</span></div>';
+  if(a.done&&opts.compact)return '<div class="note" style="gap:4px">'+head+'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b></div>';
   let b='<div class="note" style="gap:8px">'+head+(a.done?'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span>':'')+'<b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
   if(a.address)b+='<span class="muted">'+esc(a.address)+'</span>';
   if(a.location)b+=(isUrl(a.location)||a.address?'':'<span class="muted">'+esc(a.location)+'</span>')+mapsBtn(a.location,'Open in Google Maps');
