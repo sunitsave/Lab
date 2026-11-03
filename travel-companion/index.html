@@ -132,7 +132,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.30';
+const BUILD='UAT build 0.31';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -157,6 +157,7 @@ const P={
  cross:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
  ticket:'<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/>',
  cloud:'<path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.3A7 7 0 1 0 4 15.2 4 4 0 0 0 6.5 19z"/>',
+ bus:'<rect x="4" y="3" width="16" height="15" rx="3"/><path d="M4 11h16M8 18v3M16 18v3"/><circle cx="8" cy="14.5" r=".8"/><circle cx="16" cy="14.5" r=".8"/>',
  bed:'<path d="M3 18V6M3 13h18v5M21 13a3 3 0 0 0-3-3h-8v3"/><circle cx="7" cy="10.5" r="1.5"/>',
  shirt:'<path d="M8 3l4 2 4-2 5 4-3 3-2-1v12H8V9l-2 1-3-3z"/>',
  bag:'<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
@@ -290,7 +291,7 @@ async function geocode(name){if(!name)return null;try{const r=await fetch('https
 function uid(){return Math.random().toString(36).slice(2,9);}
 function sample(){
   const t=dateIn(DEVICE_TZ);
-  const h1=uid(),h2=uid();
+  const h1=uid(),h2=uid(),f1=uid();
   return {sample:true,settings:{temp:'C',dist:'km'},
     profile:{name:'Asha Mehta',photo:'',nationality:'Indian'},
     zones:[{label:'India',tz:'Asia/Kolkata',home:true},{label:'Istanbul',tz:'Europe/Istanbul'},{label:'London',tz:'Europe/London'},{label:'New York',tz:'America/New_York'}],
@@ -300,17 +301,18 @@ function sample(){
     allergies:{food:'Peanuts',medication:'Penicillin'},
     hotels:[{id:h1,name:'Rove Downtown',address:'https://www.google.com/maps/search/?api=1&query=Rove+Downtown+Dubai',phone:'+971 4 561 9000'},{id:h2,name:'Hotel Sultanahmet Palace',address:'https://www.google.com/maps/search/?api=1&query=Hotel+Sultanahmet+Palace+Istanbul',phone:'+90 212 458 0460'}],
     days:[
-      {id:uid(),date:t,clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1,activities:[
+      {id:uid(),date:t,description:'Last day in Dubai: city sights, then the evening flight to Istanbul.',clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1,activities:[
         {id:uid(),type:'sight',name:'Burj Khalifa and Dubai Mall',location:'https://www.google.com/maps/search/?api=1&query=Burj+Khalifa+Dubai',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy.',about:'The tallest building in the world, with an observation deck on level 124.'},
         {id:uid(),type:'sight',name:'Dubai Fountain show',location:'https://www.google.com/maps/search/?api=1&query=Dubai+Fountain',ticket:'Free',notes:'Show every 30 minutes from 18:00.',about:''},
-        {id:uid(),type:'travel',name:'Transfer to Dubai airport',location:'https://www.google.com/maps/search/?api=1&query=Dubai+International+Airport+Terminal+3',ticket:'',notes:'Coach leaves the hotel at 19:00.',about:''}]},
-      {id:uid(),date:addDays(t,1),clothes:'Long sleeves, stole/scarf',clothesPhoto:'',accessories:'Umbrella, light jacket',hotelId:h2,activities:[
-        {id:uid(),type:'hotel',name:'Check in at Hotel Sultanahmet Palace',location:'https://www.google.com/maps/search/?api=1&query=Hotel+Sultanahmet+Palace+Istanbul',ticket:'',notes:'Early check-in requested.',about:''},
+        {id:uid(),type:'travel',name:'Transfer to Dubai airport',location:'https://www.google.com/maps/search/?api=1&query=Dubai+International+Airport+Terminal+3',ticket:'',notes:'Coach leaves the hotel at 19:00.',about:''},
+        {id:uid(),type:'flight',flightId:f1,webcheck:false,name:'Flight to Istanbul',location:'',ticket:'',notes:'Wheelchair booked at the counter.',about:''}]},
+      {id:uid(),date:addDays(t,1),description:'Arrive in Istanbul and see the old city.',clothes:'Long sleeves, stole/scarf',clothesPhoto:'',accessories:'Umbrella, light jacket',hotelId:h2,activities:[
+        {id:uid(),type:'hotel',hotelId:h2,name:'Check in at Hotel Sultanahmet Palace',location:'',ticket:'',notes:'Early check-in requested.',about:''},
         {id:uid(),type:'sight',name:'Hagia Sophia and Blue Mosque',location:'https://www.google.com/maps/search/?api=1&query=Hagia+Sophia+Istanbul',ticket:'Free entry; head covering needed at the mosque',notes:'Closed to visitors during prayer times.',about:'Two of Istanbul\'s best-known landmarks, facing each other across the square.'}]},
       {id:uid(),date:addDays(t,2),clothes:'Warm sweater',clothesPhoto:'',accessories:'Jacket, motion-sickness tablet',hotelId:h2,activities:[
         {id:uid(),type:'sight',name:'Bosphorus cruise',location:'https://www.google.com/maps/search/?api=1&query=Eminonu+pier+Istanbul',ticket:'Included in tour package',notes:'Boarding at 11:00 sharp.',about:''}]}
     ],
-    flights:[{id:uid(),date:t,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'https://www.google.com/maps/search/?api=1&query=Dubai+International+Airport+Terminal+3',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
+    flights:[{id:f1,date:t,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'https://www.google.com/maps/search/?api=1&query=Dubai+International+Airport+Terminal+3',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
   };
 }
 function blank(){return {sample:false,settings:{temp:'C',dist:'km'},profile:{name:'',photo:'',nationality:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
@@ -479,6 +481,7 @@ function homeView(){
 /* day-level details: clothes, accessories, hotel */
 function dayDetails(d,opts){
   opts=opts||{};const ho=hotelById(d.hotelId);let b='';
+  if(d.description)b+='<p style="margin:0;font-size:18px">'+esc(d.description)+'</p>';
   if(d.clothes||d.clothesPhoto)b+='<div class="row">'+(d.clothesPhoto?photoBox(d.clothesPhoto,'80px','80px','Outfit'):ic('shirt',26))+'<span class="grow"><span class="label">Wear</span><br>'+esc(d.clothes)+'</span></div>';
   if(d.accessories)b+='<div class="row">'+ic('bag',26)+'<span class="grow"><span class="label">Carry</span><br>'+esc(d.accessories)+'</span></div>';
   if(ho)b+='<div class="'+(opts.hotelChanged?'warn':'note')+'" style="flex-direction:column;gap:8px"><span class="label" style="color:inherit">'+(opts.hotelChanged?(opts.tomorrow?'Hotel changes tomorrow':'Hotel changes'):'Hotel')+'</span><span><b style="font-size:19px">'+esc(ho.name)+'</b>'+(ho.address&&!isUrl(ho.address)?'<br>'+esc(ho.address):'')+'</span>'+(ho.address?mapsBtn(ho.address,'Hotel on Google Maps'):'')+(ho.phone?'<span>'+esc(ho.phone)+'</span>'+(opts.actions?'<a class="btn primary" href="'+telHref(ho.phone)+'">'+ic('phone',22)+'Call hotel</a>':''):'')+'</div>';
@@ -491,13 +494,21 @@ function activityCard(day,a,k,n,opts){
   const chk=a.done?'<span class="donechk" role="img" aria-label="Completed" title="Completed">'+ic('check',20)+'</span>':'';
   if(a.done&&opts.compact)return '<div class="note" style="position:relative;gap:4px;padding-right:54px">'+chk+'<b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b></div>';
   let b='<div class="note" style="position:relative;gap:8px">'+chk+'<span style="padding-right:'+(a.done?'44px':'0')+'">'+head+'</span><b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
+  const lh=a.type==='hotel'&&hotelById(a.hotelId),lf=a.type==='flight'&&flightById(a.flightId);
+  if(lh&&!a.done)b+='<span>'+ic('bed',18)+' <b>'+esc(lh.name)+'</b>'+(lh.phone?' · '+esc(lh.phone):'')+'</span>';
+  if(lf&&!a.done)b+='<span>'+ic('plane',18)+' <b>'+esc(lf.number)+'</b> · '+esc((lf.from||'')+' → '+(lf.to||''))+'<br><span class="muted">'+esc(nice(lf.date)+' · departs '+(lf.time||''))+'</span></span>';
+  if(a.type==='flight'&&!a.done)b+=a.webcheck?'<span style="color:#1E8E3E;font-weight:700">'+ic('check',18)+' Web check-in done</span>':'<span class="muted">'+ic('info',16)+' Web check-in not done yet</span>';
   if(a.address)b+='<span class="muted">'+esc(a.address)+'</span>';
   if(a.location)b+=(isUrl(a.location)||a.address?'':'<span class="muted">'+esc(a.location)+'</span>')+mapsBtn(a.location,'Open in Google Maps');
   else if(a.address)b+=mapsBtn(a.address,'Open in Google Maps');
+  else if(lh&&lh.address)b+=mapsBtn(lh.address,'Hotel on Google Maps');
+  else if(lf&&lf.airport)b+=mapsBtn(lf.airport,'Airport on Google Maps');
+  if(lh&&lh.phone&&opts.actions&&!a.done)b+='<a class="btn" href="'+telHref(lh.phone)+'">'+ic('phone',22)+'Call hotel</a>';
   if(a.about)b+='<span><span class="label">About</span><br>'+esc(a.about)+'</span>';
   if(a.ticket)b+='<span><span class="label">Ticket suggestion</span><br>'+esc(a.ticket)+'</span>';
   if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
-  if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ))b+='<span class="muted" style="font-size:15px">'+ic('info',16)+' You can mark this done from '+esc(nice(day.date))+'.</span>';
+  if(opts.markable&&a.type==='flight'&&!a.done&&!a.webcheck)b+='<button class="btn primary" style="min-height:52px;font-size:17px" data-act="webCheck" data-day="'+day.id+'" data-id="'+a.id+'">'+ic('check',20)+'Web check-in done</button>';
+  else if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ))b+='<span class="muted" style="font-size:15px">'+ic('info',16)+' You can mark this done from '+esc(nice(day.date))+'.</span>';
   else if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
   return b+'</div>';
 }
@@ -566,7 +577,7 @@ function configView(){
 const TZS=(()=>{try{return Intl.supportedValuesOf('timeZone')}catch(e){return Object.keys(COORDS)}})();
 const FORMS={
   days:{title:'Itinerary days',one:'day',sort:byDayOrder,line:d=>[nice(d.date),(d.activities.length?d.activities.length+' activit'+(d.activities.length===1?'y':'ies')+': '+d.activities.map(a=>a.name).join(', '):'No activities yet')],fields:[
-    ['date','Date','date',1],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
+    ['date','Date','date',1],['description','Description (optional)','textarea'],['clothes','Clothes for the day','text'],['clothesPhoto','Outfit photo','photo'],['accessories','Accessories to carry','text'],['hotelId','Hotel for the night','hotel']]},
   hotels:{title:'Hotels',one:'hotel',line:h=>[h.name,h.address?(isUrl(h.address)?'Google Maps link added':h.address):'No location'],fields:[['name','Hotel name','text',1],['address','Location (Google Maps link)','place',0,'f-name'],['phone','Phone (with country code)','tel']]},
   flights:{title:'Flights',one:'flight',sort:(a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')),line:f=>[nice(f.date)+' · '+(f.time||''),f.number+' '+f.from+' → '+f.to],fields:[
     ['date','Date','date',1],['number','Flight number','text',1],['from','From','text'],['to','To','text'],['time','Departure time (local)','time',1],['tz','Departure time zone','tz'],['airport','Airport location (Google Maps link)','place',0,'f-from'],['notes','Notes for the flight','textarea']]},
@@ -575,11 +586,13 @@ const FORMS={
   contacts:{title:'Emergency contacts',one:'contact',line:c=>[c.name,[c.relation,c.phone].filter(Boolean).join(' · ')],fields:[['name','Name','text',1],['relation','Relation','text'],['phone','Phone (with country code)','tel',1],['whatsapp','Has WhatsApp on this number','check']]}
 };
 function fieldHtml(f,item){
+  if(f[5]){const cur=(item&&item.type)||'sight';return '<div data-for-type="'+f[5]+'"'+(cur===f[5]?'':' hidden')+'>'+fieldHtml(f.slice(0,5),item)+'</div>';}
   const [k,label,type,req]=f;let v=item?item[k]:'';if(!item&&type==='date')v=nextDate();const id='f-'+k;const r=req?' required':'';
   if(type==='textarea')return '<label class="f" for="'+id+'">'+label+'<textarea id="'+id+'"'+r+'>'+esc(v)+'</textarea></label>';
   if(type==='check')return '<label class="chk"><input type="checkbox" id="'+id+'"'+(item?(v?' checked':''):' checked')+'>'+label+'</label>';
   if(type==='photo'){const cur=k in draftPhotos?draftPhotos[k]:v;return '<div class="f" style="display:flex;flex-direction:column;gap:6px"><b style="font-size:17px">'+label+'</b><div class="row">'+photoBox(cur,'88px','88px')+'<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="'+id+'" style="min-height:52px">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="'+id+'" data-photo="'+k+'" hidden>'+(cur?'<button type="button" class="btn" style="min-height:48px" data-act="rmPhoto" data-key="'+k+'">Remove photo</button>':'')+'</span></div></div>';}
   if(type==='hotel')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'"><option value="">None</option>'+data.hotels.map(h=>'<option value="'+esc(h.id)+'"'+(h.id===v?' selected':'')+'>'+esc(h.name)+'</option>').join('')+'</select></label>'+(data.hotels.length?'':'<span class="muted">Add hotels first under Configuration › Hotels.</span>');
+  if(type==='flight')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'"><option value="">Choose a flight</option>'+data.flights.slice().sort((a,b)=>((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||''))).map(x=>'<option value="'+esc(x.id)+'"'+(x.id===v?' selected':'')+'>'+esc(flightLabel(x))+'</option>').join('')+'</select></label>'+(data.flights.length?'':'<span class="muted">Add flights first under Configuration › Flights.</span>');
   if(type==='dose')return '<label class="f" for="'+id+'">'+label+'<select id="'+id+'">'+['0','½','1','2','3'].map(o=>'<option'+(String(v||'0')===o?' selected':'')+'>'+o+'</option>').join('')+'</select></label>';
   if(type==='place'){const q=f[4]||'f-name';const old=v&&!isUrl(v);return '<div class="f" style="display:flex;flex-direction:column;gap:8px"><label for="'+id+'" style="font-size:17px;font-weight:700">'+label+'</label>'+
     '<input id="'+id+'" type="url" inputmode="url" value="'+(old?'':esc(v))+'" placeholder="https://maps.app.goo.gl/…" autocomplete="off" style="min-height:52px;border-radius:10px;border:2px solid var(--muted);padding:8px 12px;font-size:17px;background:var(--bg);box-sizing:border-box;width:100%">'+
@@ -592,16 +605,18 @@ function fieldHtml(f,item){
 }
 function nextDate(){const ds=data.days.map(d=>d.date).filter(Boolean).sort();const today=dateIn(DEVICE_TZ);if(edit&&edit.kind==='days'&&ds.length){const n=addDays(ds[ds.length-1],1);return n>today?n:today;}return today;}
 function showErr(msg,fieldId){const e=document.getElementById('formerr');if(e)e.textContent=msg;toast(msg);const f=fieldId&&document.getElementById(fieldId);if(f){try{f.scrollIntoView({block:'center'});}catch(x){}f.focus();}}
-const ATYPES={sight:['Sight-seeing','eye'],hotel:['Hotel check-in/out','bed'],travel:['Travel','plane'],doc:['Documentation','doc'],other:['Others','dots']};
-const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['address','Address','text'],['location','Location (Google Maps link)','place',0,'f-address,f-name'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea']];
+const ATYPES={sight:['Sight-seeing','eye'],hotel:['Hotel check-in/out','bed'],flight:['Flight','plane'],travel:['Travel','bus'],doc:['Documentation','doc'],other:['Others','dots']};
+const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['hotelId','Hotel','hotel',0,'','hotel'],['flightId','Flight','flight',0,'','flight'],['address','Address','text'],['location','Location (Google Maps link)','place',0,'f-address,f-name'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea']];
 let actEdit=null,actMove=null;   /* {dayId,id,mode} while adding/editing/copying; {dayId,id} while moving */
+function flightById(id){return data.flights.find(f=>f.id===id);}
+function flightLabel(f){return nice(f.date)+' · '+(f.time||'')+' · '+f.number+' '+(f.from||'')+' → '+(f.to||'');}
 function dayById(id){return data.days.find(d=>d.id===id);}
 function isPast(ds){return ds<dateIn(DEVICE_TZ);}
 function nameTaken(day,name,exceptId){const n=name.trim().toLowerCase();return day.activities.some(a=>a.id!==exceptId&&a.name.trim().toLowerCase()===n);}
 function actHeader(title){return '<div class="top"><button type="button" class="iconbtn" data-act="actCancel" aria-label="Back to the day">'+ic('back')+'</button><h1>'+esc(title)+'</h1></div>';}
 function activityFormView(){
   const day=dayById(actEdit.dayId);const src=actEdit.id?day.activities.find(a=>a.id===actEdit.id):null;
-  let item=src;if(actEdit.mode==='copy'&&src){item=Object.assign({},src,{name:src.name+' (copy)',done:false});}
+  let item=src;if(actEdit.mode==='copy'&&src){item=Object.assign({},src,{name:src.name+' (copy)',done:false,webcheck:false});}
   const title=actEdit.mode==='copy'?'Copy activity':src?'Edit activity':'Add activity';
   let h=actHeader(title)+'<main><p class="muted" style="margin:0">'+esc(nice(day.date))+'</p><form data-form="activity" novalidate>'+AFIELDS.map(f=>fieldHtml(f,item)).join('');
   if(actEdit.mode==='copy')h+='<p class="muted" style="margin:0;font-size:15px">The copy is added to the same day. Give it a name that is not used on this day.</p>';
@@ -688,7 +703,7 @@ function shareText(){
   if(sel.meds){const al=data.allergies;if(data.meds.length||al.food||al.medication){L.push('','*Critical medicines*');
     data.meds.forEach(m=>L.push('• '+m.name+' – '+(m.m||0)+'-'+(m.a||0)+'-'+(m.n||0)+' (morning-afternoon-night)'+(m.note?', '+m.note:'')));
     if(al.food)L.push('Food allergy: '+al.food);if(al.medication)L.push('Medicine allergy: '+al.medication);}}
-  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+(h?' · Hotel: '+h.name:''));d.activities.forEach(a=>L.push('   - '+a.name+(a.address?', '+a.address:'')+(a.location?', '+a.location:'')+(a.done?' (done)':'')));});}}
+  if(sel.days){const ds=upcomingDays();if(ds.length){L.push('','*Itinerary*');ds.forEach(d=>{const h=hotelById(d.hotelId);L.push('• '+nice(d.date)+(h?' · Hotel: '+h.name:''));if(d.description)L.push('   '+d.description);d.activities.forEach(a=>L.push('   - '+a.name+(a.type==='flight'&&flightById(a.flightId)?' ('+flightById(a.flightId).number+')':'')+(a.address?', '+a.address:'')+(a.location?', '+a.location:'')+(a.done?' (done)':'')));});}}
   if(sel.hotels&&data.hotels.length){L.push('','*Hotels*');data.hotels.forEach(h=>L.push('• '+h.name+(h.address?', '+h.address:'')+(h.phone?' · '+h.phone:'')));}
   if(sel.flights){const fs=upcomingFlights();if(fs.length){L.push('','*Flights*');fs.forEach(f=>L.push('• '+nice(f.date)+' '+(f.time||'')+' · '+f.number+' '+f.from+' → '+f.to+(f.notes?' · '+f.notes:'')));}}
   L.push('','Sent from Travel Companion');
@@ -769,7 +784,7 @@ const TOUR=[
  ['pin','Where I am now','Share your location on WhatsApp, or find the nearest police station, hospital, pharmacy, restaurant or your embassy.'],
  ['cal',"Today's itinerary",'What to wear and carry, your hotel, and each activity with its address and a Google Maps button. Completed activities show a green tick. Your flight and tomorrow\'s plan follow below.'],
  ['clock','Itinerary follows phone time','Today and tomorrow are worked out from the date and time on this phone. When you change country, check that the phone shows the local time so the right day appears.'],
- ['check','View itinerary','In the menu. See every day and tap Mark as done when an activity is finished. Only today\'s and earlier activities can be marked done.'],
+ ['check','View itinerary','In the menu. See every day and tap Mark as done when an activity is finished. Only today\'s and earlier activities can be marked done. For a flight, tap Web check-in done first.'],
  ['chat','Send Info','In the menu. Sends your profile, contacts, medicines, itinerary, hotels and flights as one WhatsApp message.'],
  ['sliders','Configuration','Family or the tour manager can fill in everything here, then export it as a .zip for you to import.']
 ];
@@ -849,7 +864,8 @@ document.addEventListener('click',e=>{
   if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';renderKeepingForm();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
-  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
+  if(a==='webCheck'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;it.webcheck=true;if(save())toast('Web check-in marked done');render();return;}
+  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}if(!it.done&&it.type==='flight'&&!it.webcheck){toast('Finish web check-in first.');return;}it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
   if(a==='actAdd'){actEdit={dayId:edit.id,id:null,mode:'new'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actEdit'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'edit'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actCopy'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'copy'};pendingDelete=null;render();window.scrollTo(0,0);return;}
@@ -882,6 +898,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',async e=>{
   const el=e.target;
+  if(el.id==='f-type'&&el.closest('[data-form=activity]')){document.querySelectorAll('[data-for-type]').forEach(w=>{w.hidden=w.dataset.forType!==el.value;});return;}
   if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);renderKeepingForm();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
   if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;const d=await readBackup(f);if(!d){toast('This file is not a Travel Companion backup. Choose the .zip made by Export.');render();return;}
     const sel={};SECTIONS.forEach(x=>{sel[x[0]]=x[0]!=='settings'&&x[3](d)>0;});importArmed={name:f.name,data:d,sel};render();return;}
@@ -904,6 +921,8 @@ function handleSubmit(form){
     for(const [k,label,type,req] of AFIELDS){const v=val('f-'+k);if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save activity.','f-'+k);return;}
       if(type==='place'){if(!v){const o=document.getElementById('f-'+k+'-old');out[k]=o?o.value:'';continue;}if(!isMapsUrl(v)){showErr(label+': paste a Google Maps link. In Google Maps tap Share, then Copy link.','f-'+k);return;}}
       out[k]=v;}
+    if(out.type!=='hotel')out.hotelId='';if(out.type!=='flight'){out.flightId='';out.webcheck=false;}
+    if(out.type==='flight'&&!out.flightId){showErr(data.flights.length?'Choose the flight for this activity.':'Add the flight first under Configuration › Flights, then choose it here.','f-flightId');return;}
     if(nameTaken(day,out.name,isEdit?out.id:null)){showErr('An activity called "'+out.name+'" is already on this day. Use a different name.','f-name');return;}
     if(isEdit)day.activities=day.activities.map(a=>a.id===out.id?out:a);
     else if(actEdit.mode==='copy'){const at=day.activities.findIndex(a=>a.id===actEdit.id);day.activities.splice(at+1,0,out);}
