@@ -132,7 +132,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.32';
+const BUILD='UAT build 0.33';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -514,7 +514,7 @@ function activityCard(day,a,k,n,opts){
   if(a.ticket)b+='<span><span class="label">Ticket suggestion</span><br>'+esc(a.ticket)+'</span>';
   if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
   if(opts.markable&&a.type==='flight'&&!a.done&&!a.webcheck)b+='<button class="btn primary" style="min-height:52px;font-size:17px" data-act="webCheck" data-day="'+day.id+'" data-id="'+a.id+'">'+ic('check',20)+'Web check-in done</button>';
-  else if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ))b+='<span class="muted" style="font-size:15px">'+ic('info',16)+' You can mark this done from '+esc(nice(day.date))+'.</span>';
+  else if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ)){}
   else if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
   return b+'</div>';
 }
