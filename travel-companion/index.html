@@ -48,6 +48,7 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .big{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
 .label{font-size:15px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .muted{color:var(--muted);font-size:16px}
+.donechk{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;background:#1E8E3E;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface)}
 .note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
 .warn{background:var(--warn-bg);color:var(--warn-ink);border:2px solid var(--warn-line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -131,7 +132,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.29';
+const BUILD='UAT build 0.30';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -487,15 +488,17 @@ function dayDetails(d,opts){
 function activityCard(day,a,k,n,opts){
   opts=opts||{};const t=ATYPES[a.type]||ATYPES.sight;
   const head='<span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(n>1?(k+1)+' of '+n+' · ':'')+t[0]+'</span>';
-  if(a.done&&opts.compact)return '<div class="note" style="gap:4px">'+head+'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span><b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b></div>';
-  let b='<div class="note" style="gap:8px">'+head+(a.done?'<span class="badge" style="background:var(--accent);color:var(--accent-ink);width:max-content">'+ic('check',14)+' Completed</span>':'')+'<b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
+  const chk=a.done?'<span class="donechk" role="img" aria-label="Completed" title="Completed">'+ic('check',20)+'</span>':'';
+  if(a.done&&opts.compact)return '<div class="note" style="position:relative;gap:4px;padding-right:54px">'+chk+'<b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b></div>';
+  let b='<div class="note" style="position:relative;gap:8px">'+chk+'<span style="padding-right:'+(a.done?'44px':'0')+'">'+head+'</span><b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
   if(a.address)b+='<span class="muted">'+esc(a.address)+'</span>';
   if(a.location)b+=(isUrl(a.location)||a.address?'':'<span class="muted">'+esc(a.location)+'</span>')+mapsBtn(a.location,'Open in Google Maps');
   else if(a.address)b+=mapsBtn(a.address,'Open in Google Maps');
   if(a.about)b+='<span><span class="label">About</span><br>'+esc(a.about)+'</span>';
   if(a.ticket)b+='<span><span class="label">Ticket suggestion</span><br>'+esc(a.ticket)+'</span>';
   if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
-  if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
+  if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ))b+='<span class="muted" style="font-size:15px">'+ic('info',16)+' You can mark this done from '+esc(nice(day.date))+'.</span>';
+  else if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
   return b+'</div>';
 }
 function dayCard(d,isToday,hotelChanged,showLink){
@@ -757,12 +760,17 @@ function backupView(){
 
 /* ---------- GUIDED TOUR pages ---------- */
 const TOUR=[
- ['menu','The menu button','Top left on the home screen. It opens Guide, View itinerary and Configuration.'],
- ['clock','Time','Your local time, how much daylight is left, the temperature now, a Weather alerts button, and your home time zone. Other time zones are one tap below.'],
- ['phone','Emergency contacts','Tap to open. Each person has a Call button and a WhatsApp button.'],
- ['pill','Medication','Your medicines with photos and when to take them, shown as Morning-Afternoon-Night (for example 1-0-1), plus allergies.'],
- ['cal','Today and tomorrow','Where you are going, ticket tips, what to wear and carry, and your hotel. A hotel change is highlighted.'],
- ['pin','Where I am now','Share your location on WhatsApp, or find the nearest police station or hospital.'],
+ ['menu','The menu button','Top left on the home screen. It opens Guide, View itinerary, Send Info and Configuration.'],
+ ['user','Your photo','Top right. Tap it to see your photo and name larger.'],
+ ['clock','Time','Your local time with the date and day, how much daylight is left, and your home time zone. With location on, it also shows the temperature now and a Weather alerts button.'],
+ ['globe','Other time zones','Tap to open. Each place shows its time, day or night, and a Check weather forecast button.'],
+ ['phone','Emergency contacts','Tap to open. Each person has a Call button and a WhatsApp button. Next to it are the Tour WhatsApp group and Google Translate.'],
+ ['pill','Critical medication','Your medicines with photos and when to take them, shown as Morning-Afternoon-Night (for example 1-0-1), plus allergies.'],
+ ['pin','Where I am now','Share your location on WhatsApp, or find the nearest police station, hospital, pharmacy, restaurant or your embassy.'],
+ ['cal',"Today's itinerary",'What to wear and carry, your hotel, and each activity with its address and a Google Maps button. Completed activities show a green tick. Your flight and tomorrow\'s plan follow below.'],
+ ['clock','Itinerary follows phone time','Today and tomorrow are worked out from the date and time on this phone. When you change country, check that the phone shows the local time so the right day appears.'],
+ ['check','View itinerary','In the menu. See every day and tap Mark as done when an activity is finished. Only today\'s and earlier activities can be marked done.'],
+ ['chat','Send Info','In the menu. Sends your profile, contacts, medicines, itinerary, hotels and flights as one WhatsApp message.'],
  ['sliders','Configuration','Family or the tour manager can fill in everything here, then export it as a .zip for you to import.']
 ];
 function tourView(){
@@ -841,7 +849,7 @@ document.addEventListener('click',e=>{
   if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';renderKeepingForm();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
-  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
+  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
   if(a==='actAdd'){actEdit={dayId:edit.id,id:null,mode:'new'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actEdit'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'edit'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actCopy'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'copy'};pendingDelete=null;render();window.scrollTo(0,0);return;}
