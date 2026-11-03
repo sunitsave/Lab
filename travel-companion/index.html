@@ -131,7 +131,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.25';
+const BUILD='UAT build 0.26';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -779,6 +779,12 @@ function helpView(k){
 }
 
 /* ---------- render ---------- */
+/* redraw without losing what is typed but not yet saved in the open form */
+function renderKeepingForm(){
+  const kept={};document.querySelectorAll('form[data-form] input, form[data-form] textarea, form[data-form] select').forEach(el=>{if(!el.id||el.type==='file'||el.type==='hidden')return;kept[el.id]=el.type==='checkbox'?el.checked:el.value;});
+  render();
+  Object.keys(kept).forEach(id=>{const el=document.getElementById(id);if(!el)return;if(el.type==='checkbox')el.checked=kept[id];else el.value=kept[id];});
+}
 function render(){photoStore=[];
   const r=route();const app=document.getElementById('app');
   let h;
@@ -828,7 +834,7 @@ document.addEventListener('click',e=>{
   if(a==='cancelEdit'){edit=null;draftPhotos={};render();return;}
   if(a==='armDel'){pendingDelete=b.dataset.id;render();return;}
   if(a==='del'){const k=b.dataset.kind;data[k]=data[k].filter(x=>x.id!==b.dataset.id);if(k==='hotels')data.days.forEach(d=>{if(d.hotelId===b.dataset.id)d.hotelId=''});pendingDelete=null;data.sample=false;save();toast('Deleted');render();return;}
-  if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';render();return;}
+  if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';renderKeepingForm();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
   if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
@@ -861,7 +867,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',async e=>{
   const el=e.target;
-  if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);render();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
+  if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);renderKeepingForm();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
   if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;const d=await readBackup(f);if(!d){toast('This file is not a Travel Companion backup. Choose the .zip made by Export.');render();return;}
     const sel={};SECTIONS.forEach(x=>{sel[x[0]]=x[0]!=='settings'&&x[3](d)>0;});importArmed={name:f.name,data:d,sel};render();return;}
   if(el.dataset&&el.dataset.ssec&&shareSel){shareSel[el.dataset.ssec]=el.checked;render();return;}
