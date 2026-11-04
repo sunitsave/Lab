@@ -136,7 +136,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.35';
+const BUILD='UAT build 0.36';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -559,7 +559,7 @@ function itineraryView(){
   const days=data.days.slice().sort(byDayOrder);
   const nx=days.find(d=>d.date>=today);const defOpen=nx?nx.id:'';
   let h=top('Itinerary','menu')+'<main>';
-  if(days.length>1)h+='<div class="grid2"><button class="btn" style="min-height:48px;font-size:16px" data-act="dayAll" data-open="1">'+ic('down',20)+'Open all</button><button class="btn" style="min-height:48px;font-size:16px" data-act="dayAll" data-open="0">'+ic('up',20)+'Close all</button></div>';
+  if(days.length>1)h+='<div class="grid2"><button class="btn" style="min-height:48px;font-size:16px" data-act="dayAll" data-open="1">'+ic('down',20)+'Expand all</button><button class="btn" style="min-height:48px;font-size:16px" data-act="dayAll" data-open="0">'+ic('up',20)+'Collapse all</button></div>';
   if(!days.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
   let prevHotel='';
   days.forEach((d,i)=>{
