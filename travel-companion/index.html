@@ -43,6 +43,9 @@ main{display:flex;flex-direction:column;gap:16px;padding-top:18px}
 h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .card{background:var(--panel);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .card.strong{border:2px solid var(--ink)}
+.daybox{border:2px solid var(--line);padding:0;gap:0;overflow:hidden}.daybox.strong{border-color:var(--ink)}
+.dayhead{display:flex;align-items:center;gap:12px;width:100%;min-height:72px;padding:14px 16px;background:none;border:0;color:var(--ink);font-family:inherit;text-align:left;cursor:pointer}
+.daybody{display:flex;flex-direction:column;gap:12px;padding:0 16px 16px;border-top:1px solid var(--line);padding-top:14px}
 .row{display:flex;align-items:center;gap:12px;min-width:0}
 .grow{flex:1;min-width:0}
 .big{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -133,7 +136,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.34';
+const BUILD='UAT build 0.35';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -345,6 +348,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(data));storageOk=tru
 /* ---------- UI state ---------- */
 const open={};             // collapsed sections on home
 let tourOpen=false;
+let dayOpen={};   /* View itinerary: which day boxes are open (today, or the next day, opens by default) */
 let profileOpen=false;         // guided tour group in menu
 let edit=null;             // {kind, id|null}
 let draftPhotos={};
@@ -514,7 +518,7 @@ function activityCard(day,a,k,n,opts){
   if(a.about)b+='<span><span class="label">About</span><br>'+esc(a.about)+'</span>';
   if(a.ticket)b+='<span><span class="label">Ticket suggestion</span><br>'+esc(a.ticket)+'</span>';
   if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
-  if(opts.markable&&a.type==='flight'&&!a.done&&!a.webcheck)b+='<button class="btn primary" style="min-height:52px;font-size:17px" data-act="webCheck" data-day="'+day.id+'" data-id="'+a.id+'">'+ic('check',20)+'Web check-in done</button>';
+  if(opts.markable&&a.type==='flight'&&!a.done&&!a.webcheck&&webCheckOpen(day,a))b+='<button class="btn primary" style="min-height:52px;font-size:17px" data-act="webCheck" data-day="'+day.id+'" data-id="'+a.id+'">'+ic('check',20)+'Web check-in done</button>';
   else if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ)){}
   else if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
   return b+'</div>';
@@ -553,17 +557,23 @@ function menuView(){
 function itineraryView(){
   const today=dateIn(DEVICE_TZ);
   const days=data.days.slice().sort(byDayOrder);
+  const nx=days.find(d=>d.date>=today);const defOpen=nx?nx.id:'';
   let h=top('Itinerary','menu')+'<main>';
+  if(days.length>1)h+='<div class="grid2"><button class="btn" style="min-height:48px;font-size:16px" data-act="dayAll" data-open="1">'+ic('down',20)+'Open all</button><button class="btn" style="min-height:48px;font-size:16px" data-act="dayAll" data-open="0">'+ic('up',20)+'Close all</button></div>';
   if(!days.length)h+='<p class="muted">No itinerary days yet. They can be added in Configuration › Itinerary days.</p>';
   let prevHotel='';
   days.forEach((d,i)=>{
     const changed=!!(d.hotelId&&prevHotel&&d.hotelId!==prevHotel);if(d.hotelId)prevHotel=d.hotelId;
     const fl=data.flights.filter(f=>fDate(f)===d.date);const n=d.activities.length;const done=d.activities.filter(a=>a.done).length;
-    h+='<div class="card'+(d.date===today?' strong':'')+'"><div class="row" style="justify-content:space-between"><span class="label">Day '+(i+1)+(d.date===today?' · Today':'')+'</span><span class="muted">'+esc(nice(d.date))+'</span></div>'+
-      dayDetails(d,{hotelChanged:changed})+
+    const open=d.id in dayOpen?dayOpen[d.id]:d.id===defOpen;const isT=d.date===today;
+    h+='<section class="card daybox'+(isT?' strong':'')+'"><button type="button" class="dayhead" data-act="dayToggle" data-id="'+d.id+'" aria-expanded="'+open+'">'+
+      '<span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="label">Day '+(i+1)+(isT?' · Today':d.date<today?' · Past':'')+'</span><b style="font-size:20px">'+esc(nice(d.date))+'</b>'+
+      '<span class="muted" style="font-size:15px">'+(n?done+' of '+n+' done':'No activities')+(fl.length?' · Flight '+esc(fl.map(f=>f.number).join(', ')):'')+'</span></span>'+ic(open?'up':'down',24)+'</button>';
+    if(open)h+='<div class="daybody">'+dayDetails(d,{hotelChanged:changed})+
       fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+
       '<span class="label">Activities'+(n?' · '+done+' of '+n+' done':'')+'</span>'+
       (n?d.activities.map((a,k)=>activityCard(d,a,k,n,{markable:true})).join(''):'<p class="muted" style="margin:0">No activities planned.</p>')+'</div>';
+    h+='</section>';
   });
   h+='</main>';
   return h;
@@ -619,6 +629,8 @@ function flightById(id){return data.flights.find(f=>f.id===id);}
 /* a flight's date comes from the itinerary day whose Flight activity uses it */
 function fDate(f){const ds=data.days.filter(x=>x.activities.some(a=>a.type==='flight'&&a.flightId===f.id)).map(x=>x.date).sort();return ds[0]||'';}
 function flightLabel(f){return f.number+' · '+(f.from||'')+' → '+(f.to||'')+(f.time?' · '+f.time:'');}
+/* web check-in button shows only from 72 hours before departure */
+function webCheckOpen(day,a){const f=flightById(a.flightId);if(!f)return true;const dep=zonedToDate(day.date,f.time||'23:59',validTz(f.tz)?f.tz:DEVICE_TZ);return !dep||Date.now()>=dep.getTime()-72*3600e3;}
 function dayById(id){return data.days.find(d=>d.id===id);}
 function isPast(ds){return ds<dateIn(DEVICE_TZ);}
 function nameTaken(day,name,exceptId){const n=name.trim().toLowerCase();return day.activities.some(a=>a.id!==exceptId&&a.name.trim().toLowerCase()===n);}
@@ -862,6 +874,8 @@ document.addEventListener('click',e=>{
   if(a==='setUnit'){data.settings[b.dataset.k]=b.dataset.v;if(save())toast('Saved');render();return;}
   if(a==='locGo'){locGo(b.dataset.to);return;}
   if(a==='locate'){live.locBusy=true;live.posErr=null;render();getPos().then(()=>{live.locBusy=false;toast('Location found');render();refreshWeather(true);}).catch(()=>{live.locBusy=false;render();});return;}
+  if(a==='dayToggle'){const el=b;const open=el.getAttribute('aria-expanded')==='true';dayOpen[b.dataset.id]=!open;render();const nb=document.querySelector('[data-act=dayToggle][data-id="'+b.dataset.id+'"]');if(nb){nb.focus();if(!open){const tb=document.querySelector('.top');const y=nb.getBoundingClientRect().top+window.scrollY-((tb?tb.offsetHeight:0)+8);window.scrollTo(0,Math.max(0,y));}}return;}
+  if(a==='dayAll'){data.days.forEach(d=>dayOpen[d.id]=b.dataset.open==='1');render();return;}
   if(a==='tourToggle'){tourOpen=!tourOpen;render();return;}
   if(a==='armClearSample'){resetArmed='sample';render();return;}
   if(a==='clearSample'){data=blank();resetArmed=null;save();toast('Sample cleared. Add your trip in Configuration.');render();return;}
@@ -873,7 +887,7 @@ document.addEventListener('click',e=>{
   if(a==='rmPhoto'){draftPhotos[b.dataset.key]='';renderKeepingForm();return;}
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
-  if(a==='webCheck'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;it.webcheck=true;if(save())toast('Web check-in marked done');render();return;}
+  if(a==='webCheck'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it||!webCheckOpen(day,it))return;it.webcheck=true;if(save())toast('Web check-in marked done');render();return;}
   if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}if(!it.done&&it.type==='flight'&&!it.webcheck){toast('Finish web check-in first.');return;}it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
   if(a==='actAdd'){actEdit={dayId:edit.id,id:null,mode:'new'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actEdit'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'edit'};pendingDelete=null;render();window.scrollTo(0,0);return;}
