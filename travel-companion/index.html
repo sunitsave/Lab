@@ -155,7 +155,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.53';
+const BUILD='UAT build 0.54';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -514,14 +514,14 @@ function homeView(){
   h+=section('loc','pin','Where I am now','Share location · Police · Hospital · Pharmacy · Restaurant',5,locBody);
 
   /* Today */
-  if(tdays.length){const d=tdays[0];const left=d.activities.filter(a=>!a.done).length;    h+=section('itin','cal',"Today's itinerary",(d.activities.length?(left?left+' to do · ':'All done · ')+esc(d.activities.map(a=>a.name).join(' · ')):'No activities planned'),d.activities.length,dayCard(d,true,false,true),hasFlightNote(d));}
+  if(tdays.length){const d=tdays[0];const left=d.activities.filter(a=>!a.done).length;    h+=section('itin','cal',"Today's itinerary",(d.activities.length?(left?left+' of '+d.activities.length+' to do':'All done'):'No activities planned'),d.activities.length,dayCard(d,true,false,true),hasFlightNote(d));}
   else notToday.push(data.days.length?"Today's itinerary (nothing planned for today)":"Itinerary (no days added)");
 
 
   /* Tomorrow */
   if(ndays.length){
     const th=lastHotel(tdays),nh=lastHotel(ndays);const changed=!!(th&&nh&&th!==nh);
-    const nd=ndays[0];h+=section('tom','calnext',"Tomorrow's plan",(nd.activities.length?esc(nd.activities.map(a=>a.name).join(' · ')):'No activities planned')+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),nd.activities.length,dayCard(nd,false,changed),hasFlightNote(nd));
+    const nd=ndays[0];h+=section('tom','calnext',"Tomorrow's plan",(nd.activities.length?nd.activities.length+(nd.activities.length===1?' activity':' activities')+' planned':'No activities planned')+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),nd.activities.length,dayCard(nd,false,changed),hasFlightNote(nd));
   } else if(data.days.length) notToday.push("Tomorrow's plan (nothing planned)");
 
   /* Summary */
