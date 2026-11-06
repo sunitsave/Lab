@@ -149,7 +149,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.47';
+const BUILD='UAT build 0.48';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -209,6 +209,10 @@ let mockLoc=(()=>{try{const v=localStorage.getItem('travelCompanion.v1.mock')||'
 function mockEntry(){return mockLoc&&mockLoc!=='off'?mockLoc:null;}
 let timeShift=(()=>{try{return +localStorage.getItem('travelCompanion.v1.mocktime')||0;}catch(e){return 0;}})();
 function NOW(){return new Date(Date.now()+timeShift);}
+/* Beta testing switch: test place/time are kept, but only applied while testing is on */
+let betaOn=(()=>{try{return localStorage.getItem('travelCompanion.v1.beta')==='1';}catch(e){return false;}})();
+function readMocks(){try{const v=localStorage.getItem('travelCompanion.v1.mock')||'';mockLoc=v==='off'?'off':(v?(JSON.parse(v)||''):'');if(mockLoc&&mockLoc!=='off'&&!mockLoc.tz)mockLoc='';}catch(e){mockLoc='';}try{timeShift=+localStorage.getItem('travelCompanion.v1.mocktime')||0;}catch(e){timeShift=0;}}
+if(!betaOn){mockLoc='';timeShift=0;}
 const REAL_TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Kolkata'}catch(e){return 'Asia/Kolkata'}})();
 let DEVICE_TZ=mockEntry()?mockEntry().tz:REAL_TZ;
 function validTz(tz){try{new Intl.DateTimeFormat('en',{timeZone:tz});return true}catch(e){return false}}
@@ -597,7 +601,7 @@ function menuView(){
   h+='<a class="navitem" href="#itinerary">'+ic('cal',28)+'<span class="grow"><span class="t">View itinerary</span></span>'+ic('chev',22)+'</a>';
   h+='<a class="navitem" href="#share">'+ic('chat',28)+'<span class="grow"><span class="t">Send Info</span><span class="s">Share key details on WhatsApp</span></span>'+ic('chev',22)+'</a>';
   h+='<a class="navitem" href="#config">'+ic('sliders',28)+'<span class="grow"><span class="t">Configuration</span><span class="s">Trip, safety, profile, backup</span></span>'+ic('chev',22)+'</a>';
-  h+='<a class="navitem" href="#beta">'+ic('flask',28)+'<span class="grow"><span class="t">Beta testing</span><span class="s">'+(mockLoc||timeShift?'<b>On:</b> test place or time is set':'Try other places and times, sample trip')+'</span></span>'+ic('chev',22)+'</a>';
+  h+='<a class="navitem" href="#beta">'+ic('flask',28)+'<span class="grow"><span class="t">Beta testing</span><span class="s">'+(betaOn?'<b>On:</b> testing mode'+(mockLoc||timeShift?', test place or time set':''):'Off · try other places and times')+'</span></span>'+ic('chev',22)+'</a>';
   h+='<a class="navitem" href="#about">'+ic('info',28)+'<span class="grow"><span class="t">About</span><span class="s">How this app is made for seniors</span></span>'+ic('chev',22)+'</a>';
   h+='</nav><p class="foot">'+BUILD+' · All data is saved on this phone only.</p></main>';
   return h;
@@ -842,7 +846,9 @@ function importPicker(){
 }
 function setMockTime(v){const m=v.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);if(!m){toast('Choose a date and time first.');return;}const t=zonedToDate(m[1],m[2],DEVICE_TZ);if(!t){toast('That time could not be read.');return;}timeShift=t.getTime()-Date.now();try{localStorage.setItem(KEY+'.mocktime',String(timeShift));}catch(x){}toast('Testing: time set to '+fmtTime(DEVICE_TZ)+', '+dayDate(DEVICE_TZ));render();}
 function betaView(){
-  return top('Beta testing','menu')+'<main><div class="warn" style="border-width:1px">'+ic('info')+'<span><b>For testing only.</b> These settings let you try the app as if you were somewhere else or at another time. Turn them back to real before travelling.</span></div>'+
+  const sw='<div class="card"><button type="button" class="switchrow" role="switch" aria-checked="'+betaOn+'" data-act="betaToggle">'+ic('flask',28)+'<span class="grow" style="display:flex;flex-direction:column"><b style="font-size:20px">Testing mode</b><span class="muted" style="font-size:15px">'+(betaOn?'On: the test place and time below are used':'Off: the app uses the real location, time and data')+'</span></span><span class="switch" aria-hidden="true"></span></button></div>';
+  if(!betaOn)return top('Beta testing','menu')+'<main>'+sw+'<p class="muted" style="margin:0">Turn on Testing mode to pretend you are in another place or at another time, or to load the sample trip.</p></main>';
+  return top('Beta testing','menu')+'<main>'+sw+'<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>For testing only.</b> These settings let you try the app as if you were somewhere else or at another time. Turn Testing mode off before travelling.</span></div>'+
    '<div class="card"><span class="label">Place and time</span>'+testTools()+'</div>'+
    '<div class="card"><span class="label">Test data</span>'+(resetArmed==='reset'?'<button class="btn danger" data-act="doReset">Tap again to load the sample trip</button>':'<button class="btn" data-act="armReset">Load the sample trip</button>')+(resetArmed==='wipe'?'<button class="btn danger" data-act="doWipe">Tap again to delete everything</button>':'<button class="btn" data-act="armWipe">Delete all data on this phone</button>')+'</div></main>';
 }
@@ -1022,6 +1028,7 @@ document.addEventListener('click',e=>{
   if(a==='selAll'||a==='selNone'){SECTIONS.forEach(x=>{importArmed.sel[x[0]]=a==='selAll'&&x[3](importArmed.data)>0;});render();return;}
   if(a==='themeToggle'){const dark=b.getAttribute('aria-checked')==='true';data.profile.theme=dark?'light':'dark';save();renderKeepingForm();const nb=document.querySelector('[data-act=themeToggle]');if(nb)nb.focus();return;}
   if(a==='mockTimeSet'){setMockTime((document.getElementById('mocktime')||{}).value||'');return;}
+  if(a==='betaToggle'){betaOn=!betaOn;try{localStorage.setItem(KEY+'.beta',betaOn?'1':'0');}catch(x){}if(betaOn)readMocks();else{mockLoc='';timeShift=0;}const mk=mockEntry();DEVICE_TZ=mk?mk.tz:REAL_TZ;live.pos=null;live.place=null;live.placeFor=null;live.posErr=null;live.wx=null;live.wxErr=null;live.wxAt=0;resetArmed=null;toast(betaOn?'Testing mode on':'Testing mode off: using real place and time');render();const nb=document.querySelector('[data-act=betaToggle]');if(nb)nb.focus();refreshWeather(true);return;}
   if(a==='mockTimeReal'){timeShift=0;try{localStorage.removeItem(KEY+'.mocktime');}catch(x){}toast('Back to the real time');render();return;}
   if(a==='armReset'){resetArmed='reset';render();return;}
   if(a==='doReset'){const th=data.profile.theme;data=sample();if(th)data.profile.theme=th;resetArmed=null;save();toast('Sample trip loaded');render();return;}
@@ -1030,8 +1037,8 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',async e=>{
   const el=e.target;
-  if(el.id==='mocktime'){if(el.value)setMockTime(el.value);return;}
-  if(el.id==='mockloc'){const v=el.value;const zs=data.zones.filter(z=>validTz(z.tz));if(v==='off')mockLoc='off';else if(v[0]==='z'){const z=zs[+v.slice(1)];mockLoc=z?{label:z.label||z.tz,tz:z.tz,lat:z.lat!=null?z.lat:null,lon:z.lon!=null?z.lon:null}:'';}else mockLoc='';try{if(mockLoc)localStorage.setItem(KEY+'.mock',mockLoc==='off'?'off':JSON.stringify(mockLoc));else localStorage.removeItem(KEY+'.mock');}catch(x){}const mk=mockEntry();DEVICE_TZ=mk?mk.tz:REAL_TZ;live.pos=null;live.place=null;live.placeFor=null;live.posErr=null;live.wx=null;live.wxErr=null;live.wxAt=0;toast(mockLoc==='off'?'Testing: location turned off':mk?'Testing: you are now in '+mk.label:'Back to the real location');render();refreshWeather(true);return;}
+  if(el.id==='mocktime'){if(betaOn&&el.value)setMockTime(el.value);return;}
+  if(el.id==='mockloc'){if(!betaOn)return;const v=el.value;const zs=data.zones.filter(z=>validTz(z.tz));if(v==='off')mockLoc='off';else if(v[0]==='z'){const z=zs[+v.slice(1)];mockLoc=z?{label:z.label||z.tz,tz:z.tz,lat:z.lat!=null?z.lat:null,lon:z.lon!=null?z.lon:null}:'';}else mockLoc='';try{if(mockLoc)localStorage.setItem(KEY+'.mock',mockLoc==='off'?'off':JSON.stringify(mockLoc));else localStorage.removeItem(KEY+'.mock');}catch(x){}const mk=mockEntry();DEVICE_TZ=mk?mk.tz:REAL_TZ;live.pos=null;live.place=null;live.placeFor=null;live.posErr=null;live.wx=null;live.wxErr=null;live.wxAt=0;toast(mockLoc==='off'?'Testing: location turned off':mk?'Testing: you are now in '+mk.label:'Back to the real location');render();refreshWeather(true);return;}
   if(el.id==='f-type'&&el.closest('[data-form=activity]')){document.querySelectorAll('[data-for-type]').forEach(w=>{w.hidden=w.dataset.forType!==el.value;});return;}
   if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);renderKeepingForm();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
   if(el.id==='importfile'){const f=el.files&&el.files[0];if(!f)return;const d=await readBackup(f);if(!d){toast('This file is not a Travel Companion backup. Choose the .zip made by Export.');render();return;}
