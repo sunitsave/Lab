@@ -101,6 +101,9 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 .btn.app-loc{background:#FAD4C4;color:#4A1600;border-color:var(--ink)}
 .btn.app-tr,.tile.app-tr{background:#CC79A7;color:#2A0A1D;border-color:var(--ink)}
 .tile.app-wa span{color:#00261B}.tile.app-tr span{color:#2A0A1D}
+.leave-soon{color:#C62828}
+:root[data-theme="dark"] .leave-soon{color:#FF7A7A}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .leave-soon{color:#FF7A7A}}
 .tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);text-decoration:none;min-width:0}
 .tile b{font-size:18px;line-height:1.2}
 .tile span{font-size:14px;color:var(--muted)}
@@ -146,7 +149,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.43';
+const BUILD='UAT build 0.44';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -545,7 +548,7 @@ function activityCard(day,a,k,n,opts){
   let b='<div class="note" style="position:relative;gap:8px">'+chk+'<span style="padding-right:'+(a.done?'44px':'0')+'">'+head+'</span><b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
   const lh=a.type==='hotel'&&hotelById(a.hotelId),lf=a.type==='flight'&&flightById(a.flightId);
   if(lh&&!a.done)b+='<span>'+ic('bed',18)+' <b>'+esc(lh.name)+'</b>'+(lh.phone?' · '+esc(lh.phone):'')+'</span>';
-  if(lf&&!a.done){const l=flightLeft(day,a);b+='<span>'+ic('plane',18)+' <b>'+esc(lf.number)+'</b> · '+esc((lf.from||'')+' → '+(lf.to||''))+'<br><span class="muted">'+esc(lf.time?'Departs '+lf.time+' local time ('+zoneName(validTz(lf.tz)?lf.tz:DEVICE_TZ)+')':'')+'</span></span>'+(l?'<b style="font-size:21px">'+esc(l)+'</b>':'');}
+  if(lf&&!a.done){const l=flightLeft(day,a);b+='<span>'+ic('plane',18)+' <b>'+esc(lf.number)+'</b> · '+esc((lf.from||'')+' → '+(lf.to||''))+'<br><span class="muted">'+esc(lf.time?'Departs '+lf.time+' local time ('+zoneName(validTz(lf.tz)?lf.tz:DEVICE_TZ)+')':'')+'</span></span>'+(l?'<b class="'+(flightSoon(day,a)?'leave-soon':'')+'" style="font-size:21px">'+esc(l)+'</b>':'');}
   if(a.type==='flight'&&!a.done)b+=a.webcheck?'<span style="color:#1E8E3E;font-weight:700">'+ic('check',18)+' Web check-in done</span>':'<span class="muted">'+ic('info',16)+' Web check-in not done yet</span>';
   if(a.address)b+='<span class="muted">'+esc(a.address)+'</span>';
   if(a.location)b+=(isUrl(a.location)||a.address?'':'<span class="muted">'+esc(a.location)+'</span>')+mapsBtn(a.location,'Open in Google Maps');
@@ -675,6 +678,8 @@ function flightById(id){return data.flights.find(f=>f.id===id);}
 function fDate(f){const ds=data.days.filter(x=>x.activities.some(a=>a.type==='flight'&&a.flightId===f.id)).map(x=>x.date).sort();return ds[0]||'';}
 function flightLabel(f){return f.number+' · '+(f.from||'')+' → '+(f.to||'')+(f.time?' · '+f.time:'');}
 /* web check-in button shows only from 72 hours before departure */
+/* departure within 6 hours: show the countdown in red */
+function flightSoon(day,a){const f=flightById(a.flightId);if(!f||!f.time)return false;const dep=zonedToDate(day.date,f.time,validTz(f.tz)?f.tz:DEVICE_TZ);if(!dep)return false;const ms=dep-NOW();return ms>0&&ms<=6*3600e3;}
 function hasFlightNote(d){return d.activities.some(a=>a.type==='flight')?' <b style="white-space:nowrap;font-size:.8em">includes Flight travel '+ic('plane',16)+'</b>':'';}
 function flightLeft(day,a){const f=flightById(a.flightId);if(!f||!f.time)return '';const dep=zonedToDate(day.date,f.time,validTz(f.tz)?f.tz:DEVICE_TZ);if(!dep)return '';const now=NOW();return dep>now?'Leaves in '+dur(dep-now):'Departed '+dur(now-dep)+' ago';}
 function webCheckOpen(day,a){const f=flightById(a.flightId);if(!f)return true;const dep=zonedToDate(day.date,f.time||'23:59',validTz(f.tz)?f.tz:DEVICE_TZ);return !dep||NOW().getTime()>=dep.getTime()-72*3600e3;}
