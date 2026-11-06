@@ -146,7 +146,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.38';
+const BUILD='UAT build 0.39';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -808,6 +808,7 @@ function importPicker(){
    '<div class="grid2"><button class="btn" style="min-height:48px;font-size:16px" data-act="selAll">Select all</button><button class="btn" style="min-height:48px;font-size:16px" data-act="selNone">Clear all</button></div>'+
    '<button class="btn primary" data-act="doImport"'+(n?'':' disabled style="opacity:.5"')+'>Import '+n+' section'+(n===1?'':'s')+'</button><button class="btn" data-act="cancelImport">Cancel</button></div>';
 }
+function setMockTime(v){const m=v.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);if(!m){toast('Choose a date and time first.');return;}const t=zonedToDate(m[1],m[2],DEVICE_TZ);if(!t){toast('That time could not be read.');return;}timeShift=t.getTime()-Date.now();try{localStorage.setItem(KEY+'.mocktime',String(timeShift));}catch(x){}toast('Testing: time set to '+fmtTime(DEVICE_TZ)+', '+dayDate(DEVICE_TZ));render();}
 function testTools(){
   const zs=data.zones.filter(z=>validTz(z.tz));const mk=mockEntry();
   const opts=[['','Real location (no test)']].concat(zs.map((z,i)=>['z'+i,(z.label||z.tz)+(z.home?' (home)':'')+' · '+fmtTime(z.tz)])).concat([['off','Location turned off']]);
@@ -816,7 +817,7 @@ function testTools(){
   return '<label class="f" for="mockloc">Pretend I am in<select id="mockloc">'+opts.map(o=>'<option value="'+o[0]+'"'+(o[0]===curV?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select></label>'+
    (zs.length?'':'<span class="muted" style="font-size:15px">Add places under Configuration › Time zones to test them here.</span>')+
    '<label class="f" for="mocktime">Pretend the time is ('+esc(mk?mk.label:'local')+')<input type="datetime-local" id="mocktime" value="'+local+'"></label>'+
-   '<div class="grid2"><button type="button" class="btn" data-act="mockTimeSet">'+ic('clock',22)+'Set time</button><button type="button" class="btn" data-act="mockTimeReal"'+(timeShift?'':' disabled')+'>Use real time</button></div>'+
+   (timeShift?'<span role="status" style="font-weight:700">'+ic('clock',18)+' Test time is on: '+esc(fmtTime(DEVICE_TZ)+', '+dayDate(DEVICE_TZ))+'</span>':'<span class="muted" style="font-size:15px">Pick a date and time; it applies straight away.</span>')+'<button type="button" class="btn" data-act="mockTimeReal"'+(timeShift?'':' disabled')+'>Use real time</button>'+
    '<p class="muted" style="margin:0;font-size:15px">Changes location, time zone and time inside this app only, so you can see what the traveller sees at each place. Live weather still needs the hosted link.</p>';
 }
 function backupView(){
@@ -972,7 +973,7 @@ document.addEventListener('click',e=>{
   if(a==='xAll'||a==='xNone'){SECTIONS.forEach(x=>{exportSel[x[0]]=a==='xAll'&&x[3](data)>0;});render();return;}
   if(a==='selAll'||a==='selNone'){SECTIONS.forEach(x=>{importArmed.sel[x[0]]=a==='selAll'&&x[3](importArmed.data)>0;});render();return;}
   if(a==='themeToggle'){const dark=b.getAttribute('aria-checked')==='true';data.profile.theme=dark?'light':'dark';save();renderKeepingForm();const nb=document.querySelector('[data-act=themeToggle]');if(nb)nb.focus();return;}
-  if(a==='mockTimeSet'){const v=(document.getElementById('mocktime')||{}).value||'';const m=v.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);if(!m){toast('Choose a date and time first.');return;}const t=zonedToDate(m[1],m[2],DEVICE_TZ);if(!t){toast('That time could not be read.');return;}timeShift=t.getTime()-Date.now();try{localStorage.setItem(KEY+'.mocktime',String(timeShift));}catch(x){}toast('Testing: time set to '+fmtTime(DEVICE_TZ)+', '+dayDate(DEVICE_TZ));render();return;}
+  if(a==='mockTimeSet'){setMockTime((document.getElementById('mocktime')||{}).value||'');return;}
   if(a==='mockTimeReal'){timeShift=0;try{localStorage.removeItem(KEY+'.mocktime');}catch(x){}toast('Back to the real time');render();return;}
   if(a==='armReset'){resetArmed='reset';render();return;}
   if(a==='doReset'){const th=data.profile.theme;data=sample();if(th)data.profile.theme=th;resetArmed=null;save();toast('Sample trip loaded');render();return;}
@@ -981,6 +982,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',async e=>{
   const el=e.target;
+  if(el.id==='mocktime'){if(el.value)setMockTime(el.value);return;}
   if(el.id==='mockloc'){const v=el.value;const zs=data.zones.filter(z=>validTz(z.tz));if(v==='off')mockLoc='off';else if(v[0]==='z'){const z=zs[+v.slice(1)];mockLoc=z?{label:z.label||z.tz,tz:z.tz,lat:z.lat!=null?z.lat:null,lon:z.lon!=null?z.lon:null}:'';}else mockLoc='';try{if(mockLoc)localStorage.setItem(KEY+'.mock',mockLoc==='off'?'off':JSON.stringify(mockLoc));else localStorage.removeItem(KEY+'.mock');}catch(x){}const mk=mockEntry();DEVICE_TZ=mk?mk.tz:REAL_TZ;live.pos=null;live.place=null;live.placeFor=null;live.posErr=null;live.wx=null;live.wxErr=null;live.wxAt=0;toast(mockLoc==='off'?'Testing: location turned off':mk?'Testing: you are now in '+mk.label:'Back to the real location');render();refreshWeather(true);return;}
   if(el.id==='f-type'&&el.closest('[data-form=activity]')){document.querySelectorAll('[data-for-type]').forEach(w=>{w.hidden=w.dataset.forType!==el.value;});return;}
   if(el.dataset&&el.dataset.photo){const f=el.files&&el.files[0];if(!f)return;try{draftPhotos[el.dataset.photo]=await shrink(f);renderKeepingForm();}catch(err){toast('That photo could not be read. Try a JPG or PNG.');}return;}
