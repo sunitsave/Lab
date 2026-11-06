@@ -105,6 +105,14 @@ h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px}
 :root[data-theme="dark"] .leave-soon{color:#FF7A7A}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .leave-soon{color:#FF7A7A}}
 .hbtn{gap:8px}.hbtn .btn{font-size:15px!important;padding:0 4px;gap:4px;min-height:52px!important;white-space:nowrap;letter-spacing:-.1px}.hbtn .btn svg{width:18px;height:18px}
+.namerow{display:flex;align-items:center;gap:10px}.namerow b{flex:1;min-width:0}
+.infobtn{width:44px;height:44px;border-radius:50%;border:2px solid var(--ink);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;padding:0}
+.morebox{max-width:440px;max-height:calc(100vh - 32px);align-items:stretch;text-align:left;border:3px solid var(--ink)}
+.morehead{display:flex;align-items:center;justify-content:space-between;gap:12px}.morehead h2{display:flex;align-items:center;gap:8px}
+.richview{overflow-y:auto;max-height:60vh;font-size:18px;line-height:1.5;padding:4px 4px 4px 0;overscroll-behavior:contain}
+.richview p,.rtedit p{margin:0 0 .6em}.richview h3,.rtedit h3{margin:.4em 0 .3em;font-size:20px}.richview ul,.richview ol,.rtedit ul,.rtedit ol{margin:0 0 .6em;padding-left:1.4em}.richview a{color:inherit;text-decoration:underline;font-weight:700}
+.rtbar{display:flex;flex-wrap:wrap;gap:6px}.rtb{min-height:44px;min-width:44px;padding:0 10px;border-radius:10px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);font:inherit;font-size:16px;cursor:pointer}
+.rtedit{min-height:140px;max-height:320px;overflow-y:auto;border:2px solid var(--ink);border-radius:12px;padding:12px;background:var(--surface);color:var(--ink);font-size:18px;line-height:1.45;outline:none}.rtedit:focus{box-shadow:0 0 0 3px var(--accent)}
 .tile{min-height:112px;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:12px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);color:var(--ink);text-decoration:none;min-width:0}
 .tile b{font-size:18px;line-height:1.2}
 .tile span{font-size:14px;color:var(--muted)}
@@ -150,7 +158,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.50';
+const BUILD='UAT build 0.51';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -172,6 +180,7 @@ const P={
  pin:'<path d="M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
  plane:'<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
  cross:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>',
  ticket:'<path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/>',
  cloud:'<path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.3A7 7 0 1 0 4 15.2 4 4 0 0 0 6.5 19z"/>',
@@ -359,7 +368,7 @@ function sample(){
     hotels:[{id:h1,name:'Rove Downtown',address:'https://www.google.com/maps/search/?api=1&query=Rove+Downtown+Dubai',phone:'+971 4 561 9000'},{id:h2,name:'Hotel Sultanahmet Palace',address:'https://www.google.com/maps/search/?api=1&query=Hotel+Sultanahmet+Palace+Istanbul',phone:'+90 212 458 0460'}],
     days:[
       {id:uid(),date:t,description:'Last day in Dubai: city sights, then the evening flight to Istanbul.',clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1,activities:[
-        {id:uid(),type:'sight',name:'Burj Khalifa and Dubai Mall',location:'https://www.google.com/maps/search/Burj+Khalifa+Dubai/@25.1972,55.2744,17z',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy.',about:'The tallest building in the world, with an observation deck on level 124.'},
+        {id:uid(),type:'sight',name:'Burj Khalifa and Dubai Mall',location:'https://www.google.com/maps/search/Burj+Khalifa+Dubai/@25.1972,55.2744,17z',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy.',about:'The tallest building in the world, with an observation deck on level 124.',more:'<h3>Good to know</h3><p>The lift to level 124 takes about <b>one minute</b>. Ears may pop; swallowing helps.</p><ul><li>Wheelchairs are free at the entrance desk.</li><li>Toilets and benches are on level 125.</li><li>Best light for photos is in the late afternoon.</li></ul><h3>Dubai Mall</h3><p>The mall is very large. Agree a meeting point with the group, for example the <i>Waterfall</i> near the Burj entrance.</p><p>Buggies for seniors can be booked at the Guest Services desk on the ground floor.</p><p><a href="https://www.burjkhalifa.ae">Official Burj Khalifa website</a></p>'},
         {id:uid(),type:'sight',name:'Dubai Fountain show',location:'https://www.google.com/maps/search/Dubai+Fountain/@25.1955,55.2754,17z',ticket:'Free',notes:'Show every 30 minutes from 18:00.',about:''},
         {id:uid(),type:'travel',name:'Transfer to Dubai airport',location:'https://www.google.com/maps/search/Dubai+International+Airport+Terminal+3/@25.2486,55.3527,17z',ticket:'',notes:'Coach leaves the hotel at 19:00.',about:''},
         {id:uid(),type:'flight',flightId:f1,webcheck:false,name:'Flight to Istanbul',location:'',ticket:'',notes:'Wheelchair booked at the counter.',about:''}]},
@@ -551,8 +560,8 @@ function activityCard(day,a,k,n,opts){
   opts=opts||{};const t=ATYPES[a.type]||ATYPES.sight;
   const head='<span class="muted" style="font-size:14px;display:flex;align-items:center;gap:4px">'+ic(t[1],16)+(n>1?(k+1)+' of '+n+' · ':'')+t[0]+'</span>';
   const chk=a.done?'<span class="donechk" role="img" aria-label="Completed" title="Completed">'+ic('check',20)+'</span>':'';
-  if(a.done&&opts.compact)return '<div class="note" style="position:relative;gap:4px;padding-right:54px">'+chk+'<b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b></div>';
-  let b='<div class="note" style="position:relative;gap:8px">'+chk+'<span style="padding-right:'+(a.done?'44px':'0')+'">'+head+'</span><b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>';
+  if(a.done&&opts.compact)return '<div class="note" style="position:relative;gap:4px;padding-right:54px">'+chk+'<div class="namerow"><b style="font-size:19px;text-decoration:line-through;opacity:.8">'+esc(a.name)+'</b>'+moreBtn(day,a)+'</div></div>';
+  let b='<div class="note" style="position:relative;gap:8px">'+chk+'<span style="padding-right:'+(a.done?'44px':'0')+'">'+head+'</span><div class="namerow"><b style="font-size:20px'+(a.done?';text-decoration:line-through':'')+'">'+esc(a.name)+'</b>'+moreBtn(day,a)+'</div>';
   const lh=a.type==='hotel'&&hotelById(a.hotelId),lf=a.type==='flight'&&flightById(a.flightId);
   if(lh&&!a.done)b+='<span>'+ic('bed',18)+' <b>'+esc(lh.name)+'</b>'+(lh.phone&&!opts.actions?' · '+esc(lh.phone):'')+'</span>';
   if(lf&&!a.done){const l=flightLeft(day,a);b+='<span>'+ic('plane',18)+' <b>'+esc(lf.number)+'</b> · '+esc((lf.from||'')+' → '+(lf.to||''))+'<br><span class="muted">'+esc(lf.time?'Departs '+lf.time+' local time ('+zoneName(validTz(lf.tz)?lf.tz:DEVICE_TZ)+')':'')+'</span></span>'+(l?'<b class="'+(flightSoon(day,a)?'leave-soon':'')+'" style="font-size:21px">'+esc(l)+'</b>':'');}
@@ -659,6 +668,10 @@ const FORMS={
 function fieldHtml(f,item){
   if(f[5]){const cur=(item&&item.type)||'sight';return '<div data-for-type="'+f[5]+'"'+(cur===f[5]?'':' hidden')+'>'+fieldHtml(f.slice(0,5),item)+'</div>';}
   const [k,label,type,req]=f;let v=item?item[k]:'';if(!item&&type==='date')v=nextDate();const id='f-'+k;const r=req?' required':'';
+  if(type==='rich')return '<div class="f"><span id="'+id+'-l">'+label+' <span class="muted" style="font-weight:400;font-size:15px">(optional)</span></span>'+
+    '<div class="rtbar" role="toolbar" aria-label="Text style">'+[['bold','B','Bold','font-weight:800'],['italic','I','Italic','font-style:italic;font-family:serif'],['insertUnorderedList','• List','Bullet list',''],['insertOrderedList','1. List','Numbered list',''],['h3','Heading','Heading',''],['removeFormat','Clear','Clear style','']].map(c=>'<button type="button" class="rtb" data-act="rt" data-cmd="'+c[0]+'" aria-label="'+c[2]+'"><span style="'+c[3]+'">'+c[1]+'</span></button>').join('')+'</div>'+
+    '<div class="rtedit" id="'+id+'" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="'+id+'-l">'+cleanRich(v)+'</div>'+
+    '<span class="muted" style="font-size:15px">Shown when the traveller taps the ⓘ button on the activity. You can paste text from a website.</span></div>';
   if(type==='textarea')return '<label class="f" for="'+id+'">'+label+'<textarea id="'+id+'"'+r+'>'+esc(v)+'</textarea></label>';
   if(type==='check')return '<label class="chk"><input type="checkbox" id="'+id+'"'+(item?(v?' checked':''):' checked')+'>'+label+'</label>';
   if(type==='photo'){const cur=k in draftPhotos?draftPhotos[k]:v;return '<div class="f" style="display:flex;flex-direction:column;gap:6px"><b style="font-size:17px">'+label+'</b><div class="row">'+photoBox(cur,'88px','88px')+'<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="'+id+'" style="min-height:52px">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="'+id+'" data-photo="'+k+'" hidden>'+(cur?'<button type="button" class="btn" style="min-height:48px" data-act="rmPhoto" data-key="'+k+'">Remove photo</button>':'')+'</span></div></div>';}
@@ -677,7 +690,7 @@ function fieldHtml(f,item){
 function nextDate(){const ds=data.days.map(d=>d.date).filter(Boolean).sort();const today=dateIn(DEVICE_TZ);if(edit&&edit.kind==='days'&&ds.length){const n=addDays(ds[ds.length-1],1);return n>today?n:today;}return today;}
 function showErr(msg,fieldId){const e=document.getElementById('formerr');if(e)e.textContent=msg;toast(msg);const f=fieldId&&document.getElementById(fieldId);if(f){try{f.scrollIntoView({block:'center'});}catch(x){}f.focus();}}
 const ATYPES={sight:['Sight-seeing','eye'],hotel:['Hotel check-in/out','bed'],flight:['Flight','plane'],travel:['Travel','bus'],doc:['Documentation','doc'],other:['Others','dots']};
-const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['hotelId','Hotel','hotel',0,'','hotel'],['flightId','Flight','flight',0,'','flight'],['address','Address','text'],['location','Location (Google Maps link)','place',0,'f-address,f-name'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea']];
+const AFIELDS=[['name','Activity name','text',1],['type','Type','atype'],['hotelId','Hotel','hotel',0,'','hotel'],['flightId','Flight','flight',0,'','flight'],['address','Address','text'],['location','Location (Google Maps link)','place',0,'f-address,f-name'],['ticket','Ticket suggestion','textarea'],['notes','Important notes','textarea'],['about','About activity','textarea'],['more','Know more about this','rich']];
 let actEdit=null,actMove=null;   /* {dayId,id,mode} while adding/editing/copying; {dayId,id} while moving */
 function flightById(id){return data.flights.find(f=>f.id===id);}
 /* a flight's date comes from the itinerary day whose Flight activity uses it */
@@ -686,6 +699,13 @@ function flightLabel(f){return f.number+' · '+(f.from||'')+' → '+(f.to||'')+(
 /* web check-in button shows only from 72 hours before departure */
 /* departure within 6 hours: show the countdown in red */
 function flightSoon(day,a){const f=flightById(a.flightId);if(!f||!f.time)return false;const dep=zonedToDate(day.date,f.time,validTz(f.tz)?f.tz:DEVICE_TZ);if(!dep)return false;const ms=dep-NOW();return ms>0&&ms<=6*3600e3;}
+/* rich text: keep only simple, safe formatting */
+function cleanRich(html){if(!html)return '';const doc=new DOMParser().parseFromString('<div>'+html+'</div>','text/html');const keep={B:'b',STRONG:'b',I:'i',EM:'i',U:'u',UL:'ul',OL:'ol',LI:'li',P:'p',DIV:'p',BR:'br',H1:'h3',H2:'h3',H3:'h3',H4:'h3',A:'a'};
+  const walk=(n,out)=>{n.childNodes.forEach(c=>{if(c.nodeType===3){out.appendChild(document.createTextNode(c.nodeValue));return;}if(c.nodeType!==1)return;const tg=c.tagName;if(/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|TEMPLATE|NOSCRIPT|SVG|MATH|IMG|VIDEO|AUDIO|FORM|INPUT|BUTTON|SELECT|TEXTAREA)$/.test(tg))return;
+    const t=keep[tg];if(!t){walk(c,out);return;}const e=document.createElement(t);if(t==='a'){const h=(c.getAttribute('href')||'').trim();if(/^(https?:|tel:|mailto:)/i.test(h)){e.setAttribute('href',h);e.setAttribute('target','_blank');e.setAttribute('rel','noopener');}else{walk(c,out);return;}}if(t!=='br')walk(c,e);out.appendChild(e);});};
+  const box=document.createElement('div');walk(doc.body.firstChild||doc.body,box);const txt=box.textContent.replace(/\s+/g,'');return txt?box.innerHTML:'';}
+let moreOpen=null,moreReturn=null;   /* {day,id}: Know more popup */
+function moreBtn(day,a){return a.more?'<button type="button" class="infobtn" data-act="moreOpen" data-day="'+day.id+'" data-id="'+a.id+'" aria-label="Know more about '+esc(a.name)+'">'+ic('info',24)+'</button>':'';}
 function hasFlightNote(d){return d.activities.some(a=>a.type==='flight')?' <b style="white-space:nowrap;font-size:.8em">includes Flight travel '+ic('plane',16)+'</b>':'';}
 /* hotel buttons: on Home, Call hotel and Hotel on maps side by side, no phone number text */
 function hotelBtns(h,actions){const call=actions&&h.phone?'<a class="btn" href="'+telHref(h.phone)+'">'+ic('phone',22)+'Call hotel</a>':'';const map=h.address?mapsBtn(h.address,'Hotel on maps'):'';
@@ -958,6 +978,11 @@ function render(){photoStore=[];applyTheme();
   else if(HELP[r])h=helpView(r);
   else if(FORMS[r])h=listView(r);
   else h=homeView();
+  if(moreOpen){const dy=dayById(moreOpen.day);const it=dy&&dy.activities.find(x=>x.id===moreOpen.id);
+    if(it&&it.more)h+='<div class="overlay" data-act="moreClose"><div class="sheet morebox" data-act="noop" role="dialog" aria-modal="true" aria-labelledby="mo-t">'+
+      '<div class="morehead"><h2 id="mo-t" style="margin:0;font-size:22px">'+ic('info',24)+' '+esc(it.name)+'</h2><button type="button" class="iconbtn" style="width:48px;height:48px" data-act="moreClose" aria-label="Close">'+ic('x',24)+'</button></div>'+
+      '<div class="richview" tabindex="0" aria-label="Details">'+cleanRich(it.more)+'</div>'+
+      '<button type="button" class="btn primary" data-act="moreClose">Close</button></div></div>';}
   if(doneCheck&&doneCheck.dist!=null){const dy=dayById(doneCheck.day);const it=dy&&dy.activities.find(x=>x.id===doneCheck.id);
     h+='<div class="overlay" data-act="cancelDone"><div class="sheet" data-act="noop" role="alertdialog" aria-modal="true" aria-labelledby="dc-t" aria-describedby="dc-d" style="text-align:left;align-items:stretch;border:3px solid var(--ink)">'+
      '<h2 id="dc-t" style="margin:0;display:flex;gap:10px;align-items:center">'+ic('alert',28)+'Are you there?</h2>'+
@@ -1003,6 +1028,9 @@ document.addEventListener('click',e=>{
   if(a==='webCheckUndo'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it||it.done)return;it.webcheck=false;if(save())toast('Web check-in marked not done');render();return;}
   if(a==='webCheck'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it||!webCheckOpen(day,it))return;it.webcheck=true;if(save())toast('Web check-in marked done');render();return;}
   if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}if(!it.done&&it.type==='flight'&&!it.webcheck){toast('Finish web check-in first.');return;}if(it.done){it.done=false;if(save())toast('Marked as not done');render();return;}if(doneCheck&&doneCheck.busy)return;markDoneChecked(day,it);return;}
+  if(a==='moreOpen'){moreOpen={day:b.dataset.day,id:b.dataset.id};moreReturn=b.dataset.id;render();const c=document.querySelector('.morebox [data-act=moreClose]');if(c)c.focus();return;}
+  if(a==='moreClose'){moreOpen=null;render();const r=document.querySelector('[data-act=moreOpen][data-id="'+moreReturn+'"]');if(r)r.focus();return;}
+  if(a==='rt'){const ed=document.querySelector('.rtedit');if(!ed)return;ed.focus();const c=b.dataset.cmd;if(c==='h3')document.execCommand('formatBlock',false,'h3');else document.execCommand(c,false,null);return;}
   if(a==='confirmDone'){const c=doneCheck;doneCheck=null;const day=c&&dayById(c.day);const it=day&&day.activities.find(x=>x.id===c.id);if(it)finishDone(day,it);else render();return;}
   if(a==='cancelDone'){doneCheck=null;render();return;}
   if(a==='noop')return;
@@ -1054,7 +1082,8 @@ document.addEventListener('change',async e=>{
   if(el.dataset&&el.dataset.sec&&importArmed){importArmed.sel[el.dataset.sec]=el.checked;render();return;}
 });
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target.closest('form[data-form]');if(f)handleSubmit(f);});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&photoOpen){photoOpen=null;render();return;}if(e.key==='Escape'&&profileOpen){profileOpen=false;render();return;}});
+document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('.rtb'))e.preventDefault();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&moreOpen){moreOpen=null;render();return;}if(e.key==='Escape'&&photoOpen){photoOpen=null;render();return;}if(e.key==='Escape'&&profileOpen){profileOpen=false;render();return;}});
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target.matches('form[data-form] input:not([type=checkbox]):not([type=file])'))return;e.preventDefault();handleSubmit(e.target.closest('form[data-form]'));});
 function handleSubmit(form){
   const kind=form.dataset.form;const val=id=>{const x=document.getElementById(id);return x?x.value.trim():'';};
@@ -1065,7 +1094,7 @@ function handleSubmit(form){
   if(kind==='activity'){
     const day=dayById(actEdit.dayId);if(!day)return;const isEdit=actEdit.mode==='edit';const src=actEdit.id?day.activities.find(a=>a.id===actEdit.id):null;
     const out=isEdit&&src?Object.assign({},src):{id:uid(),done:false};
-    for(const [k,label,type,req] of AFIELDS){const v=val('f-'+k);if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save activity.','f-'+k);return;}
+    for(const [k,label,type,req] of AFIELDS){if(type==='rich'){const e=document.getElementById('f-'+k);out[k]=e?cleanRich(e.innerHTML):'';continue;}const v=val('f-'+k);if(req&&!v){showErr(label+' is needed. Fill it in, then tap Save activity.','f-'+k);return;}
       if(type==='place'){if(!v){const o=document.getElementById('f-'+k+'-old');out[k]=o?o.value:'';continue;}if(!isMapsUrl(v)){showErr(label+': paste a Google Maps link. In Google Maps tap Share, then Copy link.','f-'+k);return;}}
       out[k]=v;}
     if(out.type!=='hotel')out.hotelId='';if(out.type!=='flight'){out.flightId='';out.webcheck=false;}
