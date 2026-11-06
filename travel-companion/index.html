@@ -146,7 +146,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.39';
+const BUILD='UAT build 0.40';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -309,6 +309,31 @@ function isUrl(v){return /^https?:\/\//i.test(v||'');}
 function isMapsUrl(v){return /^https:\/\/(maps\.app\.goo\.gl\/|goo\.gl\/maps\/|(www\.)?google\.[a-z.]+\/maps|maps\.google\.[a-z.]+\/|g\.co\/kgs\/)/i.test((v||'').trim());}
 function mapsHref(v){return isUrl(v)?v:'https://www.google.com/maps/search/?api=1&query='+enc(v);}
 function mapsBtn(v,label,primary){return '<a class="btn'+(primary?' primary':'')+'" style="min-height:48px;font-size:16px" href="'+esc(mapsHref(v))+'" target="_blank" rel="noopener">'+ic('pin',20)+label+'</a>';}
+/* ---- Mark as done: check the traveller is near the activity ---- */
+const NEAR_M=500;const actCoordCache={};
+function distM(a,b){const R=6371000,r=Math.PI/180;const dLat=(b[0]-a[0])*r,dLon=(b[1]-a[1])*r;const h=Math.sin(dLat/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));}
+function coordsFromUrl(u){let s=u;try{s=decodeURIComponent(u);}catch(e){}
+  let m=s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)||s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)||s.match(/[?&](?:q|query|ll|destination|center)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+  if(m){const c=[+m[1],+m[2]];if(Math.abs(c[0])<=90&&Math.abs(c[1])<=180)return {c};}
+  const q=s.match(/[?&](?:q|query|destination)=([^&]+)/)||s.match(/\/maps\/(?:search|place)\/([^/@?]+)/);return q?{text:q[1].replace(/\+/g,' ')}:null;}
+async function activityCoords(a){const key=a.id+'|'+(a.location||'')+'|'+(a.address||'');if(key in actCoordCache)return actCoordCache[key];
+  let c=null;const tries=[];const p=a.location&&isUrl(a.location)?coordsFromUrl(a.location):null;
+  if(p&&p.c)c=p.c;else{if(a.address)tries.push(a.address);if(p&&p.text)tries.push(p.text);if(a.location&&!isUrl(a.location))tries.push(a.location);
+    for(const t of tries){c=await geocode(t);if(c)break;}}
+  actCoordCache[key]=c;return c;}
+function fmtDist(m){if(data.settings.dist==='mi'){const mi=m/1609.34;return mi<0.2?Math.round(m*1.094)+' yards':mi.toFixed(mi<10?1:0)+' miles';}return m<1000?Math.round(m/10)*10+' m':(m/1000).toFixed(m<10000?1:0)+' km';}
+let doneCheck=null;   /* {day,id,busy} while checking, {day,id,dist} when asking to confirm */
+async function markDoneChecked(day,it){
+  if(!it.location&&!it.address){finishDone(day,it);return;}
+  doneCheck={day:day.id,id:it.id,busy:true};render();
+  const timeout=ms=>new Promise(r=>setTimeout(()=>r(null),ms));
+  const [me,there]=await Promise.all([getPos(true).catch(()=>null),Promise.race([activityCoords(it),timeout(8000)])]);
+  if(!doneCheck||doneCheck.id!==it.id)return;
+  if(!me||!there){doneCheck=null;finishDone(day,it);return;}
+  const d=distM([me.lat,me.lon],there);
+  if(d<=NEAR_M){doneCheck=null;finishDone(day,it);return;}
+  doneCheck={day:day.id,id:it.id,dist:d};render();const f=document.querySelector('[data-act=confirmDone]');if(f)f.focus();}
+function finishDone(day,it){it.done=true;if(save())toast('Marked as done');render();}
 async function geocode(name){if(!name)return null;try{const r=await fetch('https://photon.komoot.io/api/?limit=1&lang=en&q='+enc(name));const j=await r.json();const c=j.features&&j.features[0]&&j.features[0].geometry.coordinates;return c?[c[1],c[0]]:null;}catch(e){return null;}}
 /* ---------- data ---------- */
 function uid(){return Math.random().toString(36).slice(2,9);}
@@ -325,17 +350,17 @@ function sample(){
     hotels:[{id:h1,name:'Rove Downtown',address:'https://www.google.com/maps/search/?api=1&query=Rove+Downtown+Dubai',phone:'+971 4 561 9000'},{id:h2,name:'Hotel Sultanahmet Palace',address:'https://www.google.com/maps/search/?api=1&query=Hotel+Sultanahmet+Palace+Istanbul',phone:'+90 212 458 0460'}],
     days:[
       {id:uid(),date:t,description:'Last day in Dubai: city sights, then the evening flight to Istanbul.',clothes:'Light cotton kurta, walking shoes',clothesPhoto:'',accessories:'Cap, sunglasses, water bottle, medicines',hotelId:h1,activities:[
-        {id:uid(),type:'sight',name:'Burj Khalifa and Dubai Mall',location:'https://www.google.com/maps/search/?api=1&query=Burj+Khalifa+Dubai',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy.',about:'The tallest building in the world, with an observation deck on level 124.'},
-        {id:uid(),type:'sight',name:'Dubai Fountain show',location:'https://www.google.com/maps/search/?api=1&query=Dubai+Fountain',ticket:'Free',notes:'Show every 30 minutes from 18:00.',about:''},
-        {id:uid(),type:'travel',name:'Transfer to Dubai airport',location:'https://www.google.com/maps/search/?api=1&query=Dubai+International+Airport+Terminal+3',ticket:'',notes:'Coach leaves the hotel at 19:00.',about:''},
+        {id:uid(),type:'sight',name:'Burj Khalifa and Dubai Mall',location:'https://www.google.com/maps/search/Burj+Khalifa+Dubai/@25.1972,55.2744,17z',ticket:'Book the 10:30 slot online; senior lift queue at Gate 2',notes:'Carry passport copy.',about:'The tallest building in the world, with an observation deck on level 124.'},
+        {id:uid(),type:'sight',name:'Dubai Fountain show',location:'https://www.google.com/maps/search/Dubai+Fountain/@25.1955,55.2754,17z',ticket:'Free',notes:'Show every 30 minutes from 18:00.',about:''},
+        {id:uid(),type:'travel',name:'Transfer to Dubai airport',location:'https://www.google.com/maps/search/Dubai+International+Airport+Terminal+3/@25.2486,55.3527,17z',ticket:'',notes:'Coach leaves the hotel at 19:00.',about:''},
         {id:uid(),type:'flight',flightId:f1,webcheck:false,name:'Flight to Istanbul',location:'',ticket:'',notes:'Wheelchair booked at the counter.',about:''}]},
       {id:uid(),date:addDays(t,1),description:'Arrive in Istanbul and see the old city.',clothes:'Long sleeves, stole/scarf',clothesPhoto:'',accessories:'Umbrella, light jacket',hotelId:h2,activities:[
         {id:uid(),type:'hotel',hotelId:h2,name:'Check in at Hotel Sultanahmet Palace',location:'',ticket:'',notes:'Early check-in requested.',about:''},
-        {id:uid(),type:'sight',name:'Hagia Sophia and Blue Mosque',location:'https://www.google.com/maps/search/?api=1&query=Hagia+Sophia+Istanbul',ticket:'Free entry; head covering needed at the mosque',notes:'Closed to visitors during prayer times.',about:'Two of Istanbul\'s best-known landmarks, facing each other across the square.'}]},
+        {id:uid(),type:'sight',name:'Hagia Sophia and Blue Mosque',location:'https://www.google.com/maps/search/Hagia+Sophia+Istanbul/@41.0086,28.9802,17z',ticket:'Free entry; head covering needed at the mosque',notes:'Closed to visitors during prayer times.',about:'Two of Istanbul\'s best-known landmarks, facing each other across the square.'}]},
       {id:uid(),date:addDays(t,2),clothes:'Warm sweater',clothesPhoto:'',accessories:'Jacket, motion-sickness tablet',hotelId:h2,activities:[
-        {id:uid(),type:'sight',name:'Bosphorus cruise',location:'https://www.google.com/maps/search/?api=1&query=Eminonu+pier+Istanbul',ticket:'Included in tour package',notes:'Boarding at 11:00 sharp.',about:''}]}
+        {id:uid(),type:'sight',name:'Bosphorus cruise',location:'https://www.google.com/maps/search/Eminonu+pier+Istanbul/@41.0176,28.9706,17z',ticket:'Included in tour package',notes:'Boarding at 11:00 sharp.',about:''}]}
     ],
-    flights:[{id:f1,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'https://www.google.com/maps/search/?api=1&query=Dubai+International+Airport+Terminal+3',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
+    flights:[{id:f1,number:'EK 123',from:'DXB Dubai',to:'IST Istanbul',time:'22:40',tz:DEVICE_TZ,airport:'https://www.google.com/maps/search/Dubai+International+Airport+Terminal+3/@25.2486,55.3527,17z',notes:'Terminal 3. Reach 3 hours early. Wheelchair booked.'}]
   };
 }
 function blank(){return {sample:false,settings:{temp:'C',dist:'km'},profile:{name:'',photo:'',nationality:''},zones:[],contacts:[],group:{name:'',link:''},meds:[],allergies:{food:'',medication:''},hotels:[],days:[],flights:[]};}
@@ -540,7 +565,7 @@ function activityCard(day,a,k,n,opts){
   if(a.notes)b+='<div class="warn" style="border-width:1px">'+ic('info')+'<span><b>Important</b><br>'+esc(a.notes)+'</span></div>';
   if(opts.markable&&a.type==='flight'&&!a.done&&!a.webcheck&&webCheckOpen(day,a))b+='<button class="btn primary" style="min-height:52px;font-size:17px" data-act="webCheck" data-day="'+day.id+'" data-id="'+a.id+'">'+ic('check',20)+'Web check-in done</button>';
   else if(opts.markable&&!a.done&&day.date>dateIn(DEVICE_TZ)){}
-  else if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'">'+ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done')+'</button>';
+  else if(opts.markable)b+='<button class="btn'+(a.done?'':' primary')+'" style="min-height:52px;font-size:17px" data-act="toggleDone" data-day="'+day.id+'" data-id="'+a.id+'" aria-pressed="'+!!a.done+'"'+(doneCheck&&doneCheck.busy&&doneCheck.id===a.id?' aria-busy="true" disabled':'')+'>'+(doneCheck&&doneCheck.busy&&doneCheck.id===a.id?'<span class="spin" aria-hidden="true"></span>Checking where you are…':ic(a.done?'back':'check',20)+(a.done?'Mark as not done':'Mark as done'))+'</button>';
   return b+'</div>';
 }
 function dayCard(d,isToday,hotelChanged,showLink){
@@ -837,6 +862,7 @@ const ABOUT=[
  ['clock','The most important things first','Time, weather alerts, emergency contacts and medicines come first on the home screen. Other sections stay folded until you need them.'],
  ['phone','One tap to get help','Call or WhatsApp family, share where you are, or find the nearest police station, hospital or pharmacy with a single tap.'],
  ['cal','Plain words, few steps','No jargon and no hidden gestures. Things that cannot be undone ask you to tap twice.'],
+ ['pin','A gentle check before marking done','When you tap Mark as done, the app checks how far you are from the activity\'s address. If you are more than 500 metres away, it asks you to confirm, so a slip of the finger does not tick off something you have not done yet.'],
  ['user','Family can set it up','Family or the tour manager can fill in the trip and send it as one file to import, so the traveller does not have to type.'],
  ['lock','Private and works offline','Everything is saved on this phone only. There is no account and no sign-in, and your details work without internet.']
 ];
@@ -856,7 +882,7 @@ const TOUR=[
  ['pin','Where I am now','Share your location on WhatsApp, or find the nearest police station, hospital, pharmacy, restaurant or your embassy.'],
  ['cal',"Today's itinerary",'What to wear and carry, your hotel, and each activity with its address and a Google Maps button. Completed activities show a green tick. Your flight and tomorrow\'s plan follow below.'],
  ['clock','Itinerary follows phone time','Today and tomorrow are worked out from the date and time on this phone. When you change country, check that the phone shows the local time so the right day appears.'],
- ['check','View itinerary','In the menu. See every day and tap Mark as done when an activity is finished. Only today\'s and earlier activities can be marked done. For a flight, tap Web check-in done first.'],
+ ['check','View itinerary','In the menu. See every day and tap Mark as done when an activity is finished. Only today\'s and earlier activities can be marked done. For a flight, tap Web check-in done first. If you are more than 500 m from the activity\'s address, the app asks you to confirm.'],
  ['chat','Send Info','In the menu. Sends your profile, contacts, medicines, itinerary, hotels and flights as one WhatsApp message.'],
  ['sliders','Configuration','Family or the tour manager can fill in everything here, then export it as a .zip for you to import.']
 ];
@@ -908,6 +934,11 @@ function render(){photoStore=[];applyTheme();
   else if(HELP[r])h=helpView(r);
   else if(FORMS[r])h=listView(r);
   else h=homeView();
+  if(doneCheck&&doneCheck.dist!=null){const dy=dayById(doneCheck.day);const it=dy&&dy.activities.find(x=>x.id===doneCheck.id);
+    h+='<div class="overlay" data-act="cancelDone"><div class="sheet" data-act="noop" role="alertdialog" aria-modal="true" aria-labelledby="dc-t" aria-describedby="dc-d" style="text-align:left;align-items:stretch">'+
+     '<h2 id="dc-t" style="margin:0;display:flex;gap:10px;align-items:center">'+ic('alert',28)+'Are you there?</h2>'+
+     '<p id="dc-d" style="margin:0;font-size:18px">You seem to be far from <b>'+esc(it?it.name:'this activity')+'</b>, about <b>'+fmtDist(doneCheck.dist)+'</b> from its address. Please confirm before marking it done.</p>'+
+     '<button type="button" class="btn primary" data-act="confirmDone">'+ic('check',22)+'Proceed: mark as done</button><button type="button" class="btn" data-act="cancelDone">Cancel</button></div></div>';}
   if(photoOpen)h+='<div class="overlay" data-act="closePhoto"><div class="sheet" role="dialog" aria-modal="true" aria-label="Photo"><img alt="" src="'+esc(photoOpen)+'" style="max-width:100%;max-height:65vh;border-radius:12px;object-fit:contain"><button type="button" class="btn" data-act="closePhoto">Close</button></div></div>';
   app.innerHTML='<div class="app-inner">'+h+'</div>';tagAppButtons(app);
 }
@@ -946,7 +977,10 @@ document.addEventListener('click',e=>{
   if(a==='zUp'||a==='zDown'){const i=+b.dataset.i,j=a==='zUp'?i-1:i+1;if(j<0||j>=data.zones.length)return;const t=data.zones[i];data.zones[i]=data.zones[j];data.zones[j]=t;save();render();return;}
   if(a==='zHome'){data.zones.forEach((z,i)=>z.home=i===+b.dataset.i);if(save())toast('Home time zone set');render();return;}
   if(a==='webCheck'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it||!webCheckOpen(day,it))return;it.webcheck=true;if(save())toast('Web check-in marked done');render();return;}
-  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}if(!it.done&&it.type==='flight'&&!it.webcheck){toast('Finish web check-in first.');return;}it.done=!it.done;if(save())toast(it.done?'Marked as done':'Marked as not done');render();return;}
+  if(a==='toggleDone'){const day=dayById(b.dataset.day);const it=day&&day.activities.find(x=>x.id===b.dataset.id);if(!it)return;if(!it.done&&day.date>dateIn(DEVICE_TZ)){toast('This activity is planned for a later day.');return;}if(!it.done&&it.type==='flight'&&!it.webcheck){toast('Finish web check-in first.');return;}if(it.done){it.done=false;if(save())toast('Marked as not done');render();return;}if(doneCheck&&doneCheck.busy)return;markDoneChecked(day,it);return;}
+  if(a==='confirmDone'){const c=doneCheck;doneCheck=null;const day=c&&dayById(c.day);const it=day&&day.activities.find(x=>x.id===c.id);if(it)finishDone(day,it);else render();return;}
+  if(a==='cancelDone'){doneCheck=null;render();return;}
+  if(a==='noop')return;
   if(a==='actAdd'){actEdit={dayId:edit.id,id:null,mode:'new'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actEdit'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'edit'};pendingDelete=null;render();window.scrollTo(0,0);return;}
   if(a==='actCopy'){actEdit={dayId:edit.id,id:b.dataset.id,mode:'copy'};pendingDelete=null;render();window.scrollTo(0,0);return;}
