@@ -149,7 +149,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.44';
+const BUILD='UAT build 0.45';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -618,7 +618,6 @@ function itineraryView(){
       '<span class="grow" style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="label">Day '+(i+1)+(isT?' · Today':d.date<today?' · Past':'')+'</span><b style="font-size:20px">'+esc(nice(d.date))+'</b>'+
       '<span class="muted" style="font-size:15px">'+(n?done+' of '+n+' done':'No activities')+(fl.length?' · Flight '+esc(fl.map(f=>f.number).join(', ')):'')+'</span></span>'+ic(open?'up':'down',24)+'</button>';
     if(open)h+='<div class="daybody">'+dayDetails(d,{hotelChanged:changed})+
-      fl.map(f=>'<div class="note"><span class="label">Flight '+esc(f.number)+'</span><span>'+esc(f.from+' → '+f.to+', departs '+f.time)+'</span></div>').join('')+
       '<span class="label">Activities'+(n?' · '+done+' of '+n+' done':'')+'</span>'+
       (n?d.activities.map((a,k)=>activityCard(d,a,k,n,{markable:true})).join(''):'<p class="muted" style="margin:0">No activities planned.</p>')+'</div>';
     h+='</section>';
