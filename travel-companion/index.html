@@ -146,7 +146,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.42';
+const BUILD='UAT build 0.43';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -505,8 +505,8 @@ function homeView(){
   /* Tomorrow */
   if(ndays.length){
     const th=lastHotel(tdays),nh=lastHotel(ndays);const changed=!!(th&&nh&&th!==nh);
-    const nd=ndays[0];h+=section('tom','calnext','Tomorrow',(nd.activities.length?esc(nd.activities.map(a=>a.name).join(' · ')):'No activities planned')+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),nd.activities.length,dayCard(nd,false,changed),hasFlightNote(nd));
-  } else if(data.days.length) notToday.push('Tomorrow (nothing planned)');
+    const nd=ndays[0];h+=section('tom','calnext',"Tomorrow's plan",(nd.activities.length?esc(nd.activities.map(a=>a.name).join(' · ')):'No activities planned')+(changed?' · <b style="color:var(--warn-line)">Hotel changes</b>':''),nd.activities.length,dayCard(nd,false,changed),hasFlightNote(nd));
+  } else if(data.days.length) notToday.push("Tomorrow's plan (nothing planned)");
 
   /* Summary */
   const lines=[];
