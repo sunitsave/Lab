@@ -150,7 +150,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.49';
+const BUILD='UAT build 0.50';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -481,7 +481,8 @@ function homeView(){
   /* Group + Translate tiles */
   const g=data.group;
   const trTile='<a class="tile" href="'+TRANSLATE_HREF+'" target="_blank" rel="noopener">'+ic('translate')+'<b>Google Translate</b><span>Opens the app · tap the mic to speak</span></a>';
-  h+=g.link?'<div class="grid2"><a class="tile app-wa" href="'+esc(g.link)+'" target="_blank" rel="noopener">'+ic('group')+'<b>Tour WhatsApp group</b><span>'+esc(g.name||'Opens WhatsApp')+'</span></a>'+trTile+'</div>':trTile;
+  const showTr=data.profile.showTranslate!==false;const grTile=g.link?'<a class="tile app-wa" href="'+esc(g.link)+'" target="_blank" rel="noopener">'+ic('group')+'<b>Tour WhatsApp group</b><span>'+esc(g.name||'Opens WhatsApp')+'</span></a>':'';
+  h+=grTile&&showTr?'<div class="grid2">'+grTile+trTile+'</div>':grTile+(showTr?trTile:'');
   if(!g.link)missing.push('Tour WhatsApp group');
 
   /* Medication */
@@ -762,7 +763,8 @@ function profileView(){
   let h=top('Profile','config')+'<main><form data-form="profile" class="card"><span class="label">My profile</span><div class="row">'+(cur?'<img class="avatar" style="width:88px;height:88px" alt="" src="'+esc(cur)+'">':'<div class="avatar" style="width:88px;height:88px">'+ic('user',36)+'</div>')+
    '<span class="grow" style="display:flex;flex-direction:column;gap:8px"><label class="btn" for="f-photo">'+ic('camera',22)+(cur?'Change photo':'Add photo')+'</label><input type="file" accept="image/*" id="f-photo" data-photo="photo" hidden>'+(cur?'<button type="button" class="btn" data-act="rmPhoto" data-key="photo">Remove photo</button>':'')+'</span></div>'+
    '<label class="f" for="f-name">Name<input id="f-name" value="'+esc(p.name)+'"></label><label class="f" for="f-nat">Nationality<select id="f-nat">'+['','Indian'].concat(p.nationality&&p.nationality!=='Indian'?[p.nationality]:[]).map(v=>'<option value="'+esc(v)+'"'+(v===(p.nationality||'')?' selected':'')+'>'+(v?esc(v):'Not set')+'</option>').join('')+'</select></label><p class="muted" style="margin:0;font-size:15px">Used for the Connect to Embassy button.</p><button class="btn primary" type="button" data-act="submitForm">Save profile</button></form>'+
-   '<div class="card"><span class="label">Display</span><button type="button" class="switchrow" role="switch" aria-checked="'+dark+'" data-act="themeToggle">'+ic(dark?'moon':'sun',28)+'<span class="grow" style="display:flex;flex-direction:column"><b style="font-size:20px">Dark mode</b><span class="muted" style="font-size:15px">'+(dark?'On: dark background, light text':'Off: light grey background, dark text')+'</span></span><span class="switch" aria-hidden="true"></span></button></div></main>';
+   '<div class="card"><span class="label">Display</span><button type="button" class="switchrow" role="switch" aria-checked="'+dark+'" data-act="themeToggle">'+ic(dark?'moon':'sun',28)+'<span class="grow" style="display:flex;flex-direction:column"><b style="font-size:20px">Dark mode</b><span class="muted" style="font-size:15px">'+(dark?'On: dark background, light text':'Off: light grey background, dark text')+'</span></span><span class="switch" aria-hidden="true"></span></button>'+
+   '<button type="button" class="switchrow" role="switch" aria-checked="'+(p.showTranslate!==false)+'" data-act="trToggle">'+ic('translate',28)+'<span class="grow" style="display:flex;flex-direction:column"><b style="font-size:20px">Google Translate on Home</b><span class="muted" style="font-size:15px">'+(p.showTranslate!==false?'On: the Translate button shows on the home screen':'Off: hidden from the home screen (still in Menu › Guide)')+'</span></span><span class="switch" aria-hidden="true"></span></button></div></main>';
   return h;
 }
 /* ---------- send critical info ---------- */
@@ -1029,6 +1031,7 @@ document.addEventListener('click',e=>{
   if(a==='copyShare'){const t=document.getElementById('sharetext');const v=t?t.value:'';const done=()=>toast('Message copied');try{navigator.clipboard.writeText(v).then(done,()=>{t.select();toast('Message selected. Use Copy from the phone menu.');});}catch(e){t.select();toast('Message selected. Use Copy from the phone menu.');}return;}
   if(a==='xAll'||a==='xNone'){SECTIONS.forEach(x=>{exportSel[x[0]]=a==='xAll'&&x[3](data)>0;});render();return;}
   if(a==='selAll'||a==='selNone'){SECTIONS.forEach(x=>{importArmed.sel[x[0]]=a==='selAll'&&x[3](importArmed.data)>0;});render();return;}
+  if(a==='trToggle'){data.profile.showTranslate=data.profile.showTranslate===false;save();toast(data.profile.showTranslate?'Translate shown on Home':'Translate hidden from Home');renderKeepingForm();const nb=document.querySelector('[data-act=trToggle]');if(nb)nb.focus();return;}
   if(a==='themeToggle'){const dark=b.getAttribute('aria-checked')==='true';data.profile.theme=dark?'light':'dark';save();renderKeepingForm();const nb=document.querySelector('[data-act=themeToggle]');if(nb)nb.focus();return;}
   if(a==='mockTimeSet'){setMockTime((document.getElementById('mocktime')||{}).value||'');return;}
   if(a==='betaToggle'){betaOn=!betaOn;try{localStorage.setItem(KEY+'.beta',betaOn?'1':'0');}catch(x){}if(betaOn)readMocks();else{mockLoc='';timeShift=0;}const mk=mockEntry();DEVICE_TZ=mk?mk.tz:REAL_TZ;live.pos=null;live.place=null;live.placeFor=null;live.posErr=null;live.wx=null;live.wxErr=null;live.wxAt=0;resetArmed=null;toast(betaOn?'Testing mode on':'Testing mode off: using real place and time');render();const nb=document.querySelector('[data-act=betaToggle]');if(nb)nb.focus();refreshWeather(true);return;}
