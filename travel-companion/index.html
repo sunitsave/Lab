@@ -149,7 +149,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.45';
+const BUILD='UAT build 0.46';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -940,7 +940,7 @@ function render(){photoStore=[];applyTheme();
   else if(FORMS[r])h=listView(r);
   else h=homeView();
   if(doneCheck&&doneCheck.dist!=null){const dy=dayById(doneCheck.day);const it=dy&&dy.activities.find(x=>x.id===doneCheck.id);
-    h+='<div class="overlay" data-act="cancelDone"><div class="sheet" data-act="noop" role="alertdialog" aria-modal="true" aria-labelledby="dc-t" aria-describedby="dc-d" style="text-align:left;align-items:stretch">'+
+    h+='<div class="overlay" data-act="cancelDone"><div class="sheet" data-act="noop" role="alertdialog" aria-modal="true" aria-labelledby="dc-t" aria-describedby="dc-d" style="text-align:left;align-items:stretch;border:3px solid var(--ink)">'+
      '<h2 id="dc-t" style="margin:0;display:flex;gap:10px;align-items:center">'+ic('alert',28)+'Are you there?</h2>'+
      '<p id="dc-d" style="margin:0;font-size:18px">You seem to be far from <b>'+esc(it?it.name:'this activity')+'</b>, about <b>'+fmtDist(doneCheck.dist)+'</b> from its address. Please confirm before marking it done.</p>'+
      '<button type="button" class="btn primary" data-act="confirmDone">'+ic('check',22)+'Proceed: mark as done</button><button type="button" class="btn" data-act="cancelDone">Cancel</button></div></div>';}
