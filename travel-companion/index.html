@@ -158,7 +158,7 @@ label.chk input{width:28px;height:28px}
 (function(){
 'use strict';
 const KEY='travelCompanion.v1';
-const BUILD='UAT build 0.55';
+const BUILD='UAT build 0.56';
 
 /* ---------- icons (inline stroke SVG) ---------- */
 const P={
@@ -926,18 +926,19 @@ function aboutView(){
 
 /* ---------- GUIDED TOUR pages ---------- */
 const TOUR=[
- ['menu','The menu button','Top left on the home screen. It opens Guide, View itinerary, Send Info and Configuration.'],
+ ['menu','The menu button','Top left on the home screen. It opens Guide, View itinerary, Send Info, Configuration and About.'],
+ ['sliders','Your home screen, your order','The boxes below are shown in the order set in Configuration › Profile › Home screen order. Use the up and down arrows there to move a box, or tap Back to the standard order. The steps below follow the standard order.'],
  ['user','Your photo','Top right. Tap it to see your photo and name larger.'],
  ['clock','Time','Your local time with the date and day, how much daylight is left, and your home time zone. With location on, it also shows the temperature now and a Weather alerts button.'],
  ['globe','Other time zones','Tap to open. Each place shows its time, day or night, and a Check weather forecast button.'],
  ['phone','Emergency contacts','Tap to open. Each person has a Call button and a WhatsApp button. Next to it are the Tour WhatsApp group and Google Translate.'],
  ['pill','Critical medication','Your medicines with photos and when to take them, shown as Morning-Afternoon-Night (for example 1-0-1), plus allergies.'],
- ['pin','Where I am now','Share your location on WhatsApp, or find the nearest police station, hospital, pharmacy, restaurant or your embassy.'],
+ ['pin','Where I am now','Opening it shows where you are now and the time it was found; tap Refresh location to update it. Share your location on WhatsApp, or find the nearest police station, hospital, pharmacy, restaurant or your embassy. Each button finds your latest location first.'],
  ['cal',"Today's itinerary",'What to wear and carry, your hotel, and each activity with its address and a Google Maps button. Completed activities show a green tick. A day with a flight says "includes Flight travel" next to its title. Tomorrow\'s plan follows below.'],
  ['clock','Itinerary follows phone time','Today and tomorrow are worked out from the date and time on this phone. When you change country, check that the phone shows the local time so the right day appears.'],
  ['check','View itinerary','In the menu. See every day and tap Mark as done when an activity is finished. Only today\'s and earlier activities can be marked done. For a flight, tap Web check-in done first. If you are more than 500 m from the activity\'s address, the app asks you to confirm.'],
  ['chat','Send Info','In the menu. Sends your profile, contacts, medicines, itinerary, hotels and flights as one WhatsApp message.'],
- ['sliders','Configuration','Family or the tour manager can fill in everything here, then export it as a .zip for you to import.']
+ ['sliders','Configuration','Family or the tour manager can fill in everything here, then export it as a .zip for you to import. In Profile you can also choose dark mode, show or hide Google Translate on the home screen, and set the home screen order.']
 ];
 function tourView(){
   const s=TOUR[tourStep];
